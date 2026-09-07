@@ -2238,16 +2238,10 @@ body::after {
   animation: dock-truck var(--dock-cycle) linear infinite;
 }
 
-/* The truck docks at 14%; the gate is fully open before unloading starts.
-   Keep it open during unloading, then close during departure. */
-@keyframes dock-gate {
-  0%, 14% { transform: translateY(0); }
-  20%, 68% { transform: translateY(-54px); }
-  78%, 100% { transform: translateY(0); }
-}
+/* The activity renderer reads the receiving truck's clock to lift the gate.
+   It also holds the gate open for a crossing forklift between deliveries. */
 .iso-dock-gate {
   transform-box: view-box;
-  animation: dock-gate var(--dock-cycle) linear infinite;
 }
 
 /* The scanning arm, and the blue that only ever means a scan. */
@@ -4136,7 +4130,7 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
   }
 
   function create(node, opts) {
-    var mesh=createMesh(node,opts), current;
+    var mesh=createMesh(node,opts), current,heldAnimation=null;
     function draw(progress) {
       current=pose(progress,opts.x,opts.receiving);
       current.progress=progress;
@@ -4145,6 +4139,24 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
     draw(.4);
     return {
       state:function () { return current; },
+      clearLane:function (needed) {
+        var animation=node.getAnimations()[0];
+        node.dataset.lanePriority=String(needed);
+        if(heldAnimation && heldAnimation!==animation) heldAnimation=null;
+        if(!animation) return;
+        if(!needed && heldAnimation) {animation.play();heldAnimation=null;}
+        node.dataset.trafficHold=String(!!heldAnimation);
+        if(!needed || (animation.playState!=='running' && heldAnimation!==animation)) return;
+        var timing=animation.effect.getTiming(),duration=timing.duration,delay=timing.delay;
+        var progress=((((animation.currentTime || 0)-delay)%duration+duration)%duration)/duration;
+        var state=pose(progress,opts.x,opts.receiving);
+        // A parked truck can start its departure without a position jump.
+        // Keep it away until the forklift has reversed clear of the entrance.
+        if(state.phase==='loading') animation.currentTime+=(.60-progress)*duration;
+        else if(state.phase==='away' && !heldAnimation) {
+          animation.pause();heldAnimation=animation;node.dataset.trafficHold='true';
+        }
+      },
       update:function (still) {
         var animation=node.getAnimations()[0];
         if(still || !animation) { draw(.4); return; }
@@ -4360,7 +4372,7 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
     var cargoNodes=new Map();
     var gate=mount.querySelector('#dock-gate'),gateLift=0;
     var wrap=mount.querySelector('#wrapping-pallet'),film=mount.querySelector('#wrapping-film');
-    var web=mount.querySelector('#wrapping-web'),wrapTime=0;
+    var web=mount.querySelector('#wrapping-web'),carriage=mount.querySelector('#wrapping-carriage'),wrapTime=0;
     var wrapSpecs=[[-3.4,-3.2,6.8,6.4,.35,'rib',0]];
     for(var level=0;level<2;level++) {
       for(var x=0;x<2;x++) for(var y=0;y<2;y++) {
@@ -4385,16 +4397,20 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
       var height=.35+progress*6.2,rad=angle*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
       function point(x,y,z) {return project(63+x*c-y*s,53+x*s+y*c,z).join(',');}
       var corners=[[-3.28,-3.08],[3.28,-3.08],[3.28,3.08],[-3.28,3.08]];
+      var visible=[s-c>0,c+s>0,c-s>0,-c-s>0];
       filmFaces.forEach(function (face,i) {
         var a=corners[i],b=corners[(i+1)%4];
+        face.style.visibility=visible[i] ? 'visible' : 'hidden';
         face.setAttribute('points',[point(a[0],a[1],2.1),point(b[0],b[1],2.1),point(b[0],b[1],2.1+height),point(a[0],a[1],2.1+height)].join(' '));
       });
       var lines='';
       for(var z=2.7;z<2.1+height;z+=.8) {
-        lines+='M'+corners.map(function (corner) {return point(corner[0],corner[1],z);}).join('L')+'Z';
+        corners.forEach(function (a,i) {var b=corners[(i+1)%4];if(visible[i]) lines+='M'+point(a[0],a[1],z)+'L'+point(b[0],b[1],z);});
       }
       seams.setAttribute('d',lines);
       var feed=project(69.5,52,2.1+height),feedTop=project(69.5,52,2.9+height);
+      var origin=project(69.5,52,0),raised=project(69.5,52,progress*6.2);
+      carriage.setAttribute('transform','translate(0,'+(raised[1]-origin[1])+')');
       web.setAttribute('d','M'+feed.join(',')+'L'+point(3.28,0,2.1+height)+'L'+point(3.28,0,2.9+height)+'L'+feedTop.join(',')+'Z');
       web.style.visibility=phase<10 ? 'visible' : 'hidden';
     }
@@ -4408,7 +4424,7 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
       var parent=hall,before=foreground;
       if(p.x<13 && p.y<28) before=blue;
       else if(p.x>99 && p.y<28) before=green;
-      else if(p.y<23 && ((p.x>23&&p.x<44)||(p.x>63&&p.x<85))) {
+      else if(p.y<18.5 && ((p.x>23&&p.x<44)||(p.x>63&&p.x<85))) {
         var rack=p.x<44 ? racks[0] : racks[1];
         parent=rack;
         before=rack.querySelector(isPallet && p.z>6 ? '[data-rack-level="upper"]' : '[data-rack-level="lower"]');
@@ -4426,6 +4442,8 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
       gateLift+=Math.sign(target-gateLift)*Math.min(Math.abs(target-gateLift),clock.dt/800);
       gate.style.setProperty('transform','translateY('+(-54*Math.max(dockLift,gateLift))+ 'px)','important');
       gate.dataset.forkliftCrossing=String(target===1);
+      gate.dataset.clearanceLift=gateLift.toFixed(6);
+      gate.dataset.dockProgress=progress.toFixed(6);
       model.forklifts.forEach(function (f,i) {
         var machine=machines[i];
         machine.mesh.draw(f);
@@ -4608,16 +4626,19 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
      corner casting at each end, which is what separates it from a plain box. */
   function containerBody(ox, oy, kind, z0) {
     var base = z0 || 0;
-    // Open rear and low rails let the fork enter the bed and the carried
-    // pallet remain visible. The truck no longer has a solid cargo block.
-    var specs = [[ox,oy,VEH_LEN,VEH_W,.2,kind,base],
-      [ox,oy,.35,VEH_W,4.5,kind,base+.2],
-      [ox,oy,VEH_LEN,.26,1.2,kind,base+.2],
-      [ox,oy+VEH_W-.26,VEH_LEN,.26,1.2,kind,base+.2]];
-    for(var i=1;i<9;i++) {
-      specs.push([ox+i*1.4,oy+VEH_W-.1,.24,.2,1.1,'rib',base+.2]);
+    var specs = [[ox, oy, VEH_LEN, VEH_W, 5.2, kind, base]];
+    for (var i = 1; i < 9; i++) {
+      specs.push([ox + i * 1.4, oy + VEH_W - .12, .32, .22, 4.9, 'rib', base + .15]);
     }
-    specs.push([ox,oy+VEH_W-.3,VEH_LEN,.35,.18,'rib',base+1.4]);
+    // Full-height corrugated sides, roof rails, and the paired rear doors.
+    specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .42, 'rib', base + 4.75]);
+    specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .36, 'rib', base]);
+    specs.push([ox + VEH_LEN - .12, oy + .45, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
+    specs.push([ox + VEH_LEN - .12, oy + VEH_W / 2 + .1, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
+    [ox, ox + VEH_LEN - .7].forEach(function (x) {
+      specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base + 4.6]);
+      specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base]);
+    });
     return specs;
   }
 
@@ -4792,7 +4813,8 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
       + '<g id="wrapping-film" class="iso-stretch-film"></g>'
       + '<path id="wrapping-web" class="iso-stretch-web"/>'
       + paint([[70, 49, 5, 8, .8, 'machine', .7], [71, 50, 3.2, 4, 23, 'machine', 1.5],
-        [69.8, 50.5, 1, 3, 7, 'steel', 6], [68.7, 51, 1.1, 2.3, 5.8, 'film', 6.6]])
+        [69.8, 50.5, 1, 3, 2.3, 'steel', 1.8]])
+      + '<g id="wrapping-carriage">' + paint([[68.7, 51, 1.1, 2.3, 1.5, 'film', 2]]) + '</g>'
       + '</g></g>';
     return out;
   }
@@ -4800,7 +4822,7 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
   function layoutLabels(text) {
     var labels = [
       [37, 45, '01 · GR', 'gr'], [57, 19, '02 · PutAway', 'putaway'],
-      [63, 64, '03 · Pallet Interlocking', 'interlock'], [97, 65, text('twin.returnables'), 'returnables']
+      [70, 66, '03 · Pallet Interlocking', 'interlock'], [97, 65, text('twin.returnables'), 'returnables']
     ];
     return '<g class="iso-area-labels" aria-hidden="true">' + labels.map(function (label) {
       var c = pt(label[0], label[1], 1);
@@ -5092,15 +5114,26 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
     function renderActivity(now) {
       frameId = 0;
       if (!active || document.hidden) { previousFrame = 0; return; }
-      var dt = previousFrame ? Math.min(100,now-previousFrame) : 0;
+      var dt = previousFrame ? Math.max(0,Math.min(1000,now-previousFrame)) : 0;
       previousFrame = now;
+      var outbound=activity.forklifts[1];
+      var needsLane=(outbound.cargo && outbound.x>=68 && outbound.y>=18.5 && outbound.lift<2) || outbound.x>98;
+      vehicles[1].clearLane(!still && !!needsLane);
       vehicles.forEach(function (vehicle) { vehicle.update(still); });
       activity.people.forEach(function (person,i) {
         var control=people[i-PATROLS.length];
         person.paused=!!control && (control.hover || (control.focus &&
           (control.button.matches(':focus-visible') || control.group.matches(':focus-visible'))) || greeted===control.group);
       });
-      if (!still) { activity.update(dt/1000,{receiving:vehicles[0].state(),shipping:vehicles[1].state()}); }
+      // Preserve elapsed time on slower devices, using small simulation steps
+      // so collision checks and fork transfers never skip over their targets.
+      if (!still) {
+        for(var remaining=dt;remaining>0;) {
+          var step=Math.min(100,remaining);
+          activity.update(step/1000,{receiving:vehicles[0].state(),shipping:vehicles[1].state()});
+          remaining-=step;
+        }
+      }
       activityRenderer.draw({dt:still ? 0 : dt,receiving:vehicles[0].state()});
       activity.people.forEach(function (person,i) {
         var node=actorNodes[i],origin=pt(person.home.x,person.home.y,0),position=pt(person.x,person.y,0);
@@ -6393,7 +6426,7 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
     });
     lastBin = window.Demos.suggestedBin;
     closeFinale();
-    ['shipping', 'shipment'].forEach(function (id) {
+    ['shipping'].forEach(function (id) {
       var node = document.getElementById(id);
       if (node) { node.style.animationDelay = ''; }
     });

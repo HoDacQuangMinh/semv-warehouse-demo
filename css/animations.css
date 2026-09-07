@@ -19,16 +19,10 @@
   animation: dock-truck var(--dock-cycle) linear infinite;
 }
 
-/* The truck docks at 14%; the gate is fully open before unloading starts.
-   Keep it open during unloading, then close during departure. */
-@keyframes dock-gate {
-  0%, 14% { transform: translateY(0); }
-  20%, 68% { transform: translateY(-54px); }
-  78%, 100% { transform: translateY(0); }
-}
+/* The activity renderer reads the receiving truck's clock to lift the gate.
+   It also holds the gate open for a crossing forklift between deliveries. */
 .iso-dock-gate {
   transform-box: view-box;
-  animation: dock-gate var(--dock-cycle) linear infinite;
 }
 
 /* The scanning arm, and the blue that only ever means a scan. */
@@ -128,6 +122,11 @@
 .iso-figure:not(.is-walking) .op-arm-back { animation-play-state: paused; }
 .iso-yield-light { fill: var(--machine); stroke: var(--ink); stroke-width: 1; visibility: hidden; }
 .iso-shuttle.is-yielding .iso-yield-light { visibility: visible; }
+.iso-stretch-film polygon { fill: #e4f2ee; fill-opacity: .14; stroke: #e4f2ee; stroke-opacity: .35; stroke-width: .55; }
+.iso-stretch-film path { fill: none; stroke: #e4f2ee; stroke-opacity: .65; stroke-width: .65; }
+.iso-stretch-web { fill: #e4f2ee; fill-opacity: .28; stroke: #e4f2ee; stroke-opacity: .55; stroke-width: .6; }
+.iso-wrapping-operator.is-wrapping .op-arm { animation: op-scan 1500ms ease-in-out infinite; }
+.iso-wrapping-operator.is-wrapping:not(.is-walking) .op-arm { animation-play-state: running; }
 
 /* The stationary crew shift their weight and gesture when their bubble opens. */
 @keyframes crew-idle {

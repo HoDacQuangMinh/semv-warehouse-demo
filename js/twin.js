@@ -144,16 +144,19 @@
      corner casting at each end, which is what separates it from a plain box. */
   function containerBody(ox, oy, kind, z0) {
     var base = z0 || 0;
-    // Open rear and low rails let the fork enter the bed and the carried
-    // pallet remain visible. The truck no longer has a solid cargo block.
-    var specs = [[ox,oy,VEH_LEN,VEH_W,.2,kind,base],
-      [ox,oy,.35,VEH_W,4.5,kind,base+.2],
-      [ox,oy,VEH_LEN,.26,1.2,kind,base+.2],
-      [ox,oy+VEH_W-.26,VEH_LEN,.26,1.2,kind,base+.2]];
-    for(var i=1;i<9;i++) {
-      specs.push([ox+i*1.4,oy+VEH_W-.1,.24,.2,1.1,'rib',base+.2]);
+    var specs = [[ox, oy, VEH_LEN, VEH_W, 5.2, kind, base]];
+    for (var i = 1; i < 9; i++) {
+      specs.push([ox + i * 1.4, oy + VEH_W - .12, .32, .22, 4.9, 'rib', base + .15]);
     }
-    specs.push([ox,oy+VEH_W-.3,VEH_LEN,.35,.18,'rib',base+1.4]);
+    // Full-height corrugated sides, roof rails, and the paired rear doors.
+    specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .42, 'rib', base + 4.75]);
+    specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .36, 'rib', base]);
+    specs.push([ox + VEH_LEN - .12, oy + .45, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
+    specs.push([ox + VEH_LEN - .12, oy + VEH_W / 2 + .1, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
+    [ox, ox + VEH_LEN - .7].forEach(function (x) {
+      specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base + 4.6]);
+      specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base]);
+    });
     return specs;
   }
 
@@ -324,8 +327,12 @@
       + discZ(63, 53, 1, 7.2, 'iso-wrapper-base')
       + discZ(63, 53, 1.7, 7.2, 'iso-wrapper-top')
       + discZ(63, 53, 1.72, 2.1, 'iso-wrapper-hub')
+      + '<g id="wrapping-pallet"></g>'
+      + '<g id="wrapping-film" class="iso-stretch-film"></g>'
+      + '<path id="wrapping-web" class="iso-stretch-web"/>'
       + paint([[70, 49, 5, 8, .8, 'machine', .7], [71, 50, 3.2, 4, 23, 'machine', 1.5],
-        [69.8, 50.5, 1, 3, 7, 'steel', 6], [68.7, 51, 1.1, 2.3, 5.8, 'film', 6.6]])
+        [69.8, 50.5, 1, 3, 2.3, 'steel', 1.8]])
+      + '<g id="wrapping-carriage">' + paint([[68.7, 51, 1.1, 2.3, 1.5, 'film', 2]]) + '</g>'
       + '</g></g>';
     return out;
   }
@@ -333,7 +340,7 @@
   function layoutLabels(text) {
     var labels = [
       [37, 45, '01 · GR', 'gr'], [57, 19, '02 · PutAway', 'putaway'],
-      [63, 64, '03 · Pallet Interlocking', 'interlock'], [97, 65, text('twin.returnables'), 'returnables']
+      [70, 66, '03 · Pallet Interlocking', 'interlock'], [97, 65, text('twin.returnables'), 'returnables']
     ];
     return '<g class="iso-area-labels" aria-hidden="true">' + labels.map(function (label) {
       var c = pt(label[0], label[1], 1);
@@ -372,13 +379,14 @@
     {id:'roamer',x:18,y:5,route:[[18,5],[18,23]],speed:1.8},
     {id:'operator',x:50,y:5,route:[[50,5],[50,23]],speed:2.1},
     {id:'returns-op',x:93,y:5,route:[[93,5],[93,23]],speed:1.8},
-    {id:'gr-scanner',x:37,y:41,route:[[37,41],[39,41],[39,46],[37,46]],speed:1.2}
+    {id:'gr-scanner',x:37,y:41,route:[[37,41],[39,41],[39,46],[37,46]],speed:1.2},
+    {id:'wrapping-operator',x:64,y:62,route:[],speed:1.2}
   ];
   var ADMIN_ROUTE = [[27,25],[50,25],[50,39],[80,39],[98,43],[98,65],
     [76,65],[76,43],[55,43],[37,43],[37,37],[18,37],[18,28],[27,25]];
   function walker(index) {
     var person=PATROLS[index];
-    return '<g class="iso-figure iso-roamer" id="' + person.id + '">'
+    return '<g class="iso-figure ' + (person.id==='wrapping-operator' ? 'iso-wrapping-operator' : 'iso-roamer') + '" id="' + person.id + '">'
       + '<g class="op-walk">' + figure(person.x,person.y) + '</g></g>';
   }
 
@@ -502,6 +510,7 @@
       +   walker(3)
       +   goodsReceived()
       +   packArea()
+      +   walker(4)
       +   returnables()
       +   layoutLabels(text)
       +   nodes(labels)
@@ -623,15 +632,26 @@
     function renderActivity(now) {
       frameId = 0;
       if (!active || document.hidden) { previousFrame = 0; return; }
-      var dt = previousFrame ? Math.min(100,now-previousFrame) : 0;
+      var dt = previousFrame ? Math.max(0,Math.min(1000,now-previousFrame)) : 0;
       previousFrame = now;
+      var outbound=activity.forklifts[1];
+      var needsLane=(outbound.cargo && outbound.x>=68 && outbound.y>=18.5 && outbound.lift<2) || outbound.x>98;
+      vehicles[1].clearLane(!still && !!needsLane);
       vehicles.forEach(function (vehicle) { vehicle.update(still); });
       activity.people.forEach(function (person,i) {
         var control=people[i-PATROLS.length];
         person.paused=!!control && (control.hover || (control.focus &&
           (control.button.matches(':focus-visible') || control.group.matches(':focus-visible'))) || greeted===control.group);
       });
-      if (!still) { activity.update(dt/1000,{receiving:vehicles[0].state(),shipping:vehicles[1].state()}); }
+      // Preserve elapsed time on slower devices, using small simulation steps
+      // so collision checks and fork transfers never skip over their targets.
+      if (!still) {
+        for(var remaining=dt;remaining>0;) {
+          var step=Math.min(100,remaining);
+          activity.update(step/1000,{receiving:vehicles[0].state(),shipping:vehicles[1].state()});
+          remaining-=step;
+        }
+      }
       activityRenderer.draw({dt:still ? 0 : dt,receiving:vehicles[0].state()});
       activity.people.forEach(function (person,i) {
         var node=actorNodes[i],origin=pt(person.home.x,person.home.y,0),position=pt(person.x,person.y,0);

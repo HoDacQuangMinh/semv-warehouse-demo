@@ -4,7 +4,10 @@
     "check:responsive": "node scripts/check-responsive.mjs",
     "check:dock": "node scripts/check-dock-cycle.mjs",
     "check:interactions": "node scripts/check-interactions.mjs",
-    "check:crew": "node scripts/check-crew-routes.mjs"
+    "check:crew": "node scripts/check-crew-routes.mjs",
+    "check:logistics": "node scripts/check-logistics.mjs",
+    "check:logistics-browser": "node scripts/check-logistics-browser.mjs",
+    "check:lane-priority": "node scripts/check-lane-priority.mjs"
   },
   "dependencies": {
     "puppeteer-core": "^25.10.0"

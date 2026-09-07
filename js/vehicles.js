@@ -109,7 +109,7 @@
   }
 
   function create(node, opts) {
-    var mesh=createMesh(node,opts), current;
+    var mesh=createMesh(node,opts), current,heldAnimation=null;
     function draw(progress) {
       current=pose(progress,opts.x,opts.receiving);
       current.progress=progress;
@@ -118,6 +118,24 @@
     draw(.4);
     return {
       state:function () { return current; },
+      clearLane:function (needed) {
+        var animation=node.getAnimations()[0];
+        node.dataset.lanePriority=String(needed);
+        if(heldAnimation && heldAnimation!==animation) heldAnimation=null;
+        if(!animation) return;
+        if(!needed && heldAnimation) {animation.play();heldAnimation=null;}
+        node.dataset.trafficHold=String(!!heldAnimation);
+        if(!needed || (animation.playState!=='running' && heldAnimation!==animation)) return;
+        var timing=animation.effect.getTiming(),duration=timing.duration,delay=timing.delay;
+        var progress=((((animation.currentTime || 0)-delay)%duration+duration)%duration)/duration;
+        var state=pose(progress,opts.x,opts.receiving);
+        // A parked truck can start its departure without a position jump.
+        // Keep it away until the forklift has reversed clear of the entrance.
+        if(state.phase==='loading') animation.currentTime+=(.60-progress)*duration;
+        else if(state.phase==='away' && !heldAnimation) {
+          animation.pause();heldAnimation=animation;node.dataset.trafficHold='true';
+        }
+      },
       update:function (still) {
         var animation=node.getAnimations()[0];
         if(still || !animation) { draw(.4); return; }

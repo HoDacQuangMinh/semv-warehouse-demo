@@ -1,0 +1,55 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "stats": {
+        "received": 3,
+        "stored": 3,
+        "delivered": 2
+      },
+      "extent": {
+        "x": 98,
+        "y": 65
+      },
+      "owners": [
+        "rack-upper",
+        "shuttle",
+        "aisle-truck",
+        "blue-buffer",
+        "rack-ground",
+        "green-buffer",
+        "truck-in"
+      ],
+      "wrappingPhases": [
+        "wrapping",
+        "finished"
+      ]
+    },
+    {
+      "file": "preview-single-file.html",
+      "stats": {
+        "received": 3,
+        "stored": 3,
+        "delivered": 2
+      },
+      "extent": {
+        "x": 98,
+        "y": 65
+      },
+      "owners": [
+        "rack-upper",
+        "shuttle",
+        "aisle-truck",
+        "blue-buffer",
+        "rack-ground",
+        "green-buffer",
+        "truck-in"
+      ],
+      "wrappingPhases": [
+        "wrapping",
+        "finished"
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -44,18 +44,20 @@ wave and a greeting cycling through “Hello!”, “Xin chào!”, and “I lov
 Reduced motion keeps the greeting and skips the wave. `npm run check:interactions`
 checks crew targeting, drag-versus-click, zoom, touch, and keyboard controls.
 Sơn stands beside Returnables, Minh beside the GR stacks, Trí beside Pallet
-Interlocking, and Bách beside PutAway. Ngân patrols the clear strip in front of
-the first rack and pauses for hovering, keyboard focus, or a greeting. Tappable
+Interlocking, and Bách beside PutAway. Ngân patrols GR, Pallet Interlocking,
+Returnables, and the storage aisles, pausing for hover, focus, or a greeting. Tappable
 name callouts keep their screen size while the map zooms and move into free
 space when a compact layout needs it. The anonymous walker beside the blue
-container is painted behind the rack to preserve depth in the alley.
+container is painted behind the rack to preserve depth in the alley. Another
+walker uses the alley beside the green container, behind its walls.
 Both navigation links remain available on phones. Operators step and swing their
 arms, while the stationary crew shift their weight and gesture. Warehouse motion
 pauses when the hall is hidden and stops when reduced motion is requested.
 
 The GR receiving gate shares the truck's 24-second delivery loop: it opens once
-the truck docks, stays open for unloading and returns, and closes as the truck
-leaves. `npm run check:dock` verifies the timing across two cycles, both themes,
+the truck docks, stays open for unloading, and closes as the truck leaves. It
+also opens for a forklift crossing between deliveries. `npm run check:dock`
+verifies the timing across two cycles, both themes,
 phone and desktop layouts, reduced motion, and the standalone preview.
 Both trucks turn through their approach, reverse rear-first to the dock, stop
 for loading, then leave cab-first and turn out. The vehicle geometry rotates
@@ -63,6 +65,24 @@ in plan coordinates while its vertical surfaces stay upright. Closing the
 completion dialog returns directly to the warehouse plan and keeps the three
 completed stations. `npm run check:crew` covers name targets, Ngân's pause and
 resume behavior, and the shipping truck's manoeuvre.
+
+Forklifts use a shared activity model, with one owner for each pallet. The
+receiving forklift unloads the truck, sets the pallet inside the blue container,
+and carries it into a lower PutAway bay. The other forklift stores and retrieves
+a pallet at shelf height, lowers its forks for travel, enters the green container,
+sets the load down, reverses out empty, and returns to the racks. Deliveries wait
+for a free bay before collecting new cargo. Near a pedestrian, the forklift
+stops while the operator steps aside, then resumes. Operators can adjust their
+waiting spot if a forklift turns toward them.
+The shipping truck departs early when a loaded forklift approaches and waits
+outside until the forklift has dropped its load and cleared the container entrance.
+
+The yellow turntable rotates a boxed pallet while transparent film builds upward.
+A nearby operator gestures through wrapping; the completed wrap pauses briefly
+before repeating. These activities pause offscreen and respect reduced motion.
+`npm run check:logistics` simulates ten minutes of deliveries and encounters.
+`npm run check:logistics-browser` checks rendered cargo, wrapping, routes, and
+phone layout in both app files.
 
 The floor plan follows the supplied warehouse model: blue and olive container
 docks bookend two open orange rack banks for PutAway. Across the central aisle,
@@ -103,7 +123,9 @@ the transition.
     js/i18n.js              every string, Vietnamese and English
     js/twin.js              the isometric hall: geometry, actors, hover cards
     js/camera.js            pointer, touch, and keyboard map controls
-    js/vehicles.js          projected truck steering and reversing
+    js/vehicles.js          projected vehicles, forks, and cargo meshes
+    js/logistics.js         pallet ownership, task sequences, and pedestrian yielding
+    js/logistics-renderer.js  cargo depth, gate clearance, and wrapping animation
     js/router.js            view switching and the forklift transition
     js/state.js             station completion, in memory only
     js/forklift.js          the transition vehicle
@@ -132,9 +154,9 @@ rules matter if you edit it:
 1. **Depth order.** A larger `x + y` is nearer the viewer and must be painted
    later. `paint()` sorts individual boxes; the rack row is drawn before the
    aisle actors, and the receiving and wrapping equipment after them.
-2. **Lanes.** Forklifts use y 30 and 35 in the central aisle. Pedestrians use
-   the side corridors at x 18 and 50, the receiving and returnables bays, and
-   Ngân's patrol at y 25. Recheck projected clearance as well as floor clearance
+2. **Lanes.** Forklifts enter rack bays at x 28 and 68 and use the central aisle
+   and container approaches. Pedestrians use side corridors at x 18, 50, and 93;
+   Ngân follows a warehouse circuit. Recheck projected and floor clearance
    when moving equipment or a figure, and preserve the rack/actor drawing order.
 
 ## Before this goes public

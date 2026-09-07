@@ -27,11 +27,11 @@ try {
           window.I18N.setLanguage('en');
           document.documentElement.dataset.theme = theme;
         }, theme);
-        const timing = await page.evaluate(() => ['dock-truck','dock-gate'].map(id => {
+        const timing = await page.evaluate(() => ['dock-truck'].map(id => {
           const animation = document.getElementById(id).getAnimations()[0];
           return {start:animation.startTime,duration:animation.effect.getTiming().duration};
         }));
-        assert.ok(timing.every(item => item.duration === 24000 && item.start === timing[0].start), 'Dock animations must share the same clock');
+        assert.ok(timing.every(item => item.duration === 24000), 'The receiving clock must run every 24 seconds');
         checks++;
 
         // Inspect the actual rendered transforms across two delivery cycles.
@@ -45,16 +45,17 @@ try {
             const read = id => {
               const style = getComputedStyle(document.getElementById(id));
               const transform = new DOMMatrixReadOnly(style.transform === 'none' ? undefined : style.transform);
-              return {x:transform.e,y:transform.f,opacity:Number(style.opacity)};
+              return {x:transform.e,y:transform.f,opacity:Number(style.opacity),clearance:Number(document.getElementById(id).dataset.clearanceLift || 0),progress:Number(document.getElementById(id).dataset.dockProgress || 0)};
             };
             const truck=document.getElementById('dock-truck');
             return {gate:read('dock-gate'),truck:{...read('dock-truck'),planX:Number(truck.dataset.vehicleX),planY:Number(truck.dataset.vehicleY),heading:Number(truck.dataset.vehicleHeading),phase:truck.dataset.vehiclePhase}};
           }, percent);
           const phase = percent % 100;
           const context = `${file} ${width}px ${theme} at ${percent}%`;
-          if (phase <= 14 || phase >= 78) assert.ok(near(pose.gate.y,0), `${context}: gate should be closed`);
+          assert.ok(near(pose.gate.progress,phase/100),`${context}: gate must read the truck's actual clock`);
+          if (phase <= 14 || phase >= 78) assert.ok(near(pose.gate.y,-54*pose.gate.clearance), `${context}: gate should close unless a forklift needs clearance`);
           if (phase >= 20 && phase <= 68) assert.ok(near(pose.gate.y,-54), `${context}: gate should be fully open`);
-          if (phase === 17 || phase === 73) assert.ok(near(pose.gate.y,-27), `${context}: gate should be halfway through its lift`);
+          if (phase === 17 || phase === 73) assert.ok(near(pose.gate.y,-54*Math.max(.5,pose.gate.clearance)), `${context}: gate must follow the truck clock and preserve forklift clearance`);
           if (phase >= 14 && phase <= 68) assert.ok(near(pose.truck.planX,6) && near(pose.truck.planY,37) && near(pose.truck.heading,-90), `${context}: truck must remain docked with its rear towards the gate`);
           if (phase === 6) assert.ok(pose.truck.heading > -180 && pose.truck.heading < -90 && pose.truck.phase === 'turning',`${context}: truck must turn before reversing`);
           if (phase === 10 || phase === 12) assert.ok(pose.truck.planY > 37 && near(pose.truck.heading,-90) && pose.truck.phase === 'reversing',`${context}: truck must reverse towards its dock`);
@@ -84,7 +85,7 @@ try {
         assert.ok(await page.$eval('#twin-stage', mount => mount.classList.contains('is-paused')));
         await page.evaluate(() => window.Router.go('home',{instant:true}));
         assert.ok(await page.evaluate(() => {
-          const animations = ['dock-truck','dock-gate'].map(id => document.getElementById(id).getAnimations()[0]);
+          const animations = ['dock-truck'].map(id => document.getElementById(id).getAnimations()[0]);
           return animations.every(animation => animation && animation.playState === 'running' && animation.startTime === animations[0].startTime);
         }), 'All dock actors must resume together after navigation');
         checks++;

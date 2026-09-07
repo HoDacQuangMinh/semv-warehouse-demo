@@ -26,6 +26,49 @@
     var racks=Array.from(mount.querySelectorAll('.iso-rack-bank'));
     var cargoNodes=new Map();
     var gate=mount.querySelector('#dock-gate'),gateLift=0;
+    var wrap=mount.querySelector('#wrapping-pallet'),film=mount.querySelector('#wrapping-film');
+    var web=mount.querySelector('#wrapping-web'),carriage=mount.querySelector('#wrapping-carriage'),wrapTime=0;
+    var wrapSpecs=[[-3.4,-3.2,6.8,6.4,.35,'rib',0]];
+    for(var level=0;level<2;level++) {
+      for(var x=0;x<2;x++) for(var y=0;y<2;y++) {
+        wrapSpecs.push([-3.15+x*3.2,-2.95+y*3,3.05,2.85,3.1,'load',.35+level*3.1]);
+      }
+    }
+    var wrapMesh=global.WarehouseVehicles.createMesh(wrap,{vehicle:{specs:wrapSpecs,wheels:[]},project:project,pivot:[0,0]});
+    var filmFaces=[];
+    for(var side=0;side<4;side++) {
+      var face=document.createElementNS(NS,'polygon');film.appendChild(face);filmFaces.push(face);
+    }
+    var seams=document.createElementNS(NS,'path');film.appendChild(seams);
+    function drawWrapper(dt) {
+      wrapTime+=dt/1000;
+      var phase=wrapTime%14;
+      var progress=Math.min(1,phase/10),angle=progress*1080;
+      wrap.dataset.wrappingPhase=phase<10 ? 'wrapping' : 'finished';
+      wrapMesh.draw({x:63,y:53,z:1.75,angle:angle,phase:wrap.dataset.wrappingPhase});
+      mount.querySelector('#wrapping-operator').classList.toggle('is-wrapping',phase<10);
+      // The film builds upward as the turntable rotates. Its feed follows the
+      // rising carriage at the mast, while the finished load pauses for a beat.
+      var height=.35+progress*6.2,rad=angle*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
+      function point(x,y,z) {return project(63+x*c-y*s,53+x*s+y*c,z).join(',');}
+      var corners=[[-3.28,-3.08],[3.28,-3.08],[3.28,3.08],[-3.28,3.08]];
+      var visible=[s-c>0,c+s>0,c-s>0,-c-s>0];
+      filmFaces.forEach(function (face,i) {
+        var a=corners[i],b=corners[(i+1)%4];
+        face.style.visibility=visible[i] ? 'visible' : 'hidden';
+        face.setAttribute('points',[point(a[0],a[1],2.1),point(b[0],b[1],2.1),point(b[0],b[1],2.1+height),point(a[0],a[1],2.1+height)].join(' '));
+      });
+      var lines='';
+      for(var z=2.7;z<2.1+height;z+=.8) {
+        corners.forEach(function (a,i) {var b=corners[(i+1)%4];if(visible[i]) lines+='M'+point(a[0],a[1],z)+'L'+point(b[0],b[1],z);});
+      }
+      seams.setAttribute('d',lines);
+      var feed=project(69.5,52,2.1+height),feedTop=project(69.5,52,2.9+height);
+      var origin=project(69.5,52,0),raised=project(69.5,52,progress*6.2);
+      carriage.setAttribute('transform','translate(0,'+(raised[1]-origin[1])+')');
+      web.setAttribute('d','M'+feed.join(',')+'L'+point(3.28,0,2.1+height)+'L'+point(3.28,0,2.9+height)+'L'+feedTop.join(',')+'Z');
+      web.style.visibility=phase<10 ? 'visible' : 'hidden';
+    }
     var machines=model.forklifts.map(function (f) {
       var node=mount.querySelector('#'+f.id);
       var mesh=global.WarehouseVehicles.createMesh(node,{vehicle:forklift(),project:project,pivot:[0,0],wheelMirrorY:0});
@@ -36,7 +79,7 @@
       var parent=hall,before=foreground;
       if(p.x<13 && p.y<28) before=blue;
       else if(p.x>99 && p.y<28) before=green;
-      else if(p.y<23 && ((p.x>23&&p.x<44)||(p.x>63&&p.x<85))) {
+      else if(p.y<18.5 && ((p.x>23&&p.x<44)||(p.x>63&&p.x<85))) {
         var rack=p.x<44 ? racks[0] : racks[1];
         parent=rack;
         before=rack.querySelector(isPallet && p.z>6 ? '[data-rack-level="upper"]' : '[data-rack-level="lower"]');
@@ -45,6 +88,7 @@
       if(node.depthLayer!==layer) { parent.insertBefore(node,before);node.depthLayer=layer; }
     }
     function draw(clock) {
+      drawWrapper(clock.dt);
       // The delivery clock opens the shutter for the truck. A crossing
       // forklift may also open it between deliveries, before reaching it.
       var progress=clock.receiving.progress;
@@ -53,6 +97,8 @@
       gateLift+=Math.sign(target-gateLift)*Math.min(Math.abs(target-gateLift),clock.dt/800);
       gate.style.setProperty('transform','translateY('+(-54*Math.max(dockLift,gateLift))+ 'px)','important');
       gate.dataset.forkliftCrossing=String(target===1);
+      gate.dataset.clearanceLift=gateLift.toFixed(6);
+      gate.dataset.dockProgress=progress.toFixed(6);
       model.forklifts.forEach(function (f,i) {
         var machine=machines[i];
         machine.mesh.draw(f);

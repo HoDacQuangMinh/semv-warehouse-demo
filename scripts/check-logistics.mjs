@@ -5,6 +5,18 @@ import vm from 'node:vm';
 const context=vm.createContext({window:{}});
 for(const file of ['vehicles','logistics']) vm.runInContext(await readFile(`js/${file}.js`,'utf8'),context);
 const {WarehouseVehicles:vehicles,WarehouseLogistics:logistics}=context.window;
+// Exercise the shipping clock independently of real-time browser waits.
+// A departure starts from the same parked pose and the next truck stays away
+// until the forklift clears the container entrance.
+const node={dataset:{},appendChild(){},getAnimations:()=>[animation]};
+context.document={createElementNS:()=>({})};
+const animation={currentTime:19200,playState:'running',effect:{getTiming:()=>({duration:48000,delay:0})},pause(){this.playState='paused';},play(){this.playState='running';}};
+const truck=vehicles.create(node,{vehicle:{specs:[],wheels:[]},project:()=>[0,0],x:105,receiving:false});
+truck.update(false);const parked={...truck.state()};truck.clearLane(true);truck.update(false);
+assert.equal(truck.state().x,parked.x);assert.equal(truck.state().y,parked.y);assert.equal(truck.state().phase,'departing');
+animation.currentTime=40000;truck.clearLane(true);assert.equal(animation.playState,'paused');
+truck.clearLane(false);assert.equal(animation.playState,'running');
+animation.pause();animation.currentTime=19200;truck.clearLane(true);assert.equal(animation.currentTime,19200,'Leave a manually paused or hidden clock alone');
 const model=logistics.create({people:[
   {id:'admin',x:27,y:25,speed:2.6,route:[[27,25],[50,25],[50,39],[80,39],[98,43],[98,65],[76,65],[76,43],[55,43],[37,43],[37,37],[18,37],[18,28],[27,25]]},
   {id:'blue',x:18,y:5,speed:1.8,route:[[18,5],[18,23]]},
@@ -59,7 +71,6 @@ for(let frame=0;frame<12000;frame++) {
     }
     positions.set(pallet.id,{...pallet});
     if(pallet.owner==='rack-upper') assert.equal(pallet.z,7.12);
-    if(pallet.owner==='truck-out') assert.ok(state(48,105,false).progress>=.2,'Only load a docked truck');
   }
   checks++;
 }

@@ -32,10 +32,9 @@
     move(28,25,-90),rotate(0),move(68,25,0),rotate(-90),lift(7.45),move(68,19,-90),lift(7.12),drop('rack-upper'),
     lift(6.9),move(68,24,-90),pause(1.5),lift(7.12),move(68,19,-90),pickup('rack-upper'),lift(7.45),
     move(68,25,-90),lift(1.05),rotate(0),move(92,25,0),rotate(90),move(92,32,90),rotate(0),wait('green-clear'),
-    move(105,32,0),rotate(-90),move(105,12,-90),lift(.85),drop('green-buffer'),move(105,16,-90),pause(1),
-    move(105,12,-90),pickup('green-buffer'),lift(1.05),move(105,18,-90),rotate(90),wait('outbound-ready'),
-    lift(2.7),move(105,26,90),lift(2.3),drop('truck-out'),move(105,18,90),lift(.85),wait('green-clear'),
-    move(105,37,90),rotate(180),move(52,37,180),rotate(-90),move(52,25,-90),rotate(180)
+    move(105,32,0),rotate(-90),move(105,20,-90),lift(1.32),drop('green-buffer'),
+    move(105,32,-90),rotate(180),move(92,32,180),rotate(90),move(92,37,90),
+    rotate(180),move(52,37,180),rotate(-90),move(52,25,-90),rotate(180)
   ];
 
   function create(options) {
@@ -54,23 +53,23 @@
     function ready(truck) { return truck.phase==='loading' && truck.progress>=.20 && truck.progress<.37; }
     function clear(truck) { return truck.phase==='away' && truck.progress<.89; }
     function condition(name,f) {
-      if(name==='inbound-ready') return ready(trucks.receiving) && !owned('truck-in');
-      if(name==='outbound-ready') return ready(trucks.shipping) && !owned('truck-out');
+      if(name==='inbound-ready') return ready(trucks.receiving) && !owned('truck-in') && !owned('rack-ground');
       if(name==='blue-clear') return clear(trucks.receiving);
       if(name==='green-clear') return clear(trucks.shipping);
       if(name==='ground-free') return !owned('rack-ground') && forklifts[1].x>38;
-      if(name==='ground-ready') return !!owned('rack-ground') && forklifts[0].x<20;
+      if(name==='ground-ready') return !!owned('rack-ground') && (forklifts[0].x<20 || forklifts[0].waitingFor==='ground-free');
       return true;
     }
     function advance(f) { f.step=(f.step+1)%f.program.length; f.elapsed=0; }
     function beginYield(person,f) {
-      if(person.yieldTo || person.paused) return;
+      if(person.paused) return;
+      if(person.yieldTo && !person.returning && distance(person,person.aside)>.15) return;
       var heading=f.angle*RAD, nx=-Math.sin(heading), ny=Math.cos(heading);
       // Step to the closer side of the lane, away from the vehicle centreline.
       var sign=(person.x-f.x)*nx+(person.y-f.y)*ny>=0 ? 1 : -1;
       var offset=4.2;
       person.aside={x:Math.max(2,Math.min(110,person.x+nx*sign*offset)),y:Math.max(2,Math.min(65,person.y+ny*sign*offset))};
-      person.resume={x:person.x,y:person.y};
+      if(!person.yieldTo) person.resume={x:person.x,y:person.y};
       person.yieldTo=f.id;
       person.returning=false;
     }
@@ -86,16 +85,6 @@
     function update(dt,states) {
       dt=Math.max(0,Math.min(dt,.1));
       if(states) trucks=states;
-      cargo=cargo.filter(function (p) {
-        if(p.owner==='truck-out' && trucks.shipping.phase==='away') { delivered++; return false; }
-        if(p.owner==='truck-out') {
-          var angle=trucks.shipping.angle*RAD;
-          p.x=trucks.shipping.x+Math.cos(angle)*7.2;
-          p.y=trucks.shipping.y+Math.sin(angle)*7.2;
-          p.angle=trucks.shipping.angle+90;
-        }
-        return true;
-      });
       people.forEach(function (person) {
         person.walking=false;
         if(person.paused) return;
@@ -156,6 +145,9 @@
           var pallet=owned(f.id);
           if(pallet) {
             var point=forkPoint(f);
+            // Retain the latest delivery inside the container. Older stock is
+            // archived there so the repeating scene does not grow endlessly.
+            if(action.owner==='green-buffer') {cargo=cargo.filter(function (p) {return p.owner!=='green-buffer';});delivered++;}
             pallet.x=point.x;pallet.y=point.y;pallet.z=point.z;pallet.angle=f.angle;pallet.owner=action.owner;f.cargo=null;
             if(action.owner==='rack-ground') trips++;
             advance(f);

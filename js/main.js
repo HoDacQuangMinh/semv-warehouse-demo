@@ -364,7 +364,7 @@
     });
     lastBin = window.Demos.suggestedBin;
     closeFinale();
-    ['shipping', 'shipment'].forEach(function (id) {
+    ['shipping'].forEach(function (id) {
       var node = document.getElementById(id);
       if (node) { node.style.animationDelay = ''; }
     });

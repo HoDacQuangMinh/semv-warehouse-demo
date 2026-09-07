@@ -1,0 +1,27 @@
+{
+  "checks": 12000,
+  "virtualMinutes": 10,
+  "received": 7,
+  "stored": 7,
+  "delivered": 6,
+  "stoppedFrames": 86,
+  "yieldingOperators": [
+    "bach",
+    "green",
+    "center",
+    "admin"
+  ],
+  "cleared": 16,
+  "minimumForkliftSeparation": 22.000056818108447,
+  "palletOne": [
+    "truck-in",
+    "aisle-truck",
+    "blue-buffer",
+    "aisle-truck",
+    "rack-ground",
+    "shuttle",
+    "rack-upper",
+    "shuttle",
+    "green-buffer"
+  ]
+}
