@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "build:preview": "node scripts/build-preview.mjs",
+    "check:responsive": "node scripts/check-responsive.mjs",
+    "check:dock": "node scripts/check-dock-cycle.mjs",
+    "check:interactions": "node scripts/check-interactions.mjs",
+    "check:crew": "node scripts/check-crew-routes.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.10.0"
+  }
+}

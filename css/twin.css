@@ -1,0 +1,533 @@
+/* The digital twin stage. Always dark, in both themes, because the hall is a
+   readout of the plant rather than part of the page surface. */
+
+.twin {
+  position: relative;
+  background: var(--hall-bg);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.twin::before {
+  /* Floor haze, so the far end of the hall falls away instead of stopping. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(110% 85% at 46% 30%, var(--hall-haze), transparent 64%), var(--grain);
+  pointer-events: none;
+}
+
+.twin__svg {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78vh;
+}
+#twin-stage { overflow: hidden; }
+#twin-stage.is-dragging .twin__svg,
+#twin-stage.is-dragging .twin__svg * { cursor: grabbing; }
+
+.twin-map-controls {
+  position: absolute;
+  right: var(--scene-pad);
+  bottom: var(--scene-pad);
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  box-shadow: var(--shadow-lift);
+}
+.twin-map-controls button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+.twin-map-controls button:hover { background: var(--panel); }
+.twin-map-controls button:disabled { opacity: .35; cursor: default; }
+@container (max-width: 640px) {
+  .twin-map-controls { flex-direction: column; }
+}
+@container (max-height: 340px) and (min-aspect-ratio: 7/5) {
+  .twin-map-controls {
+    top: var(--scene-pad);
+    bottom: auto;
+    flex-direction: row;
+  }
+  #view-home .twin__head {
+    min-height: 54px;
+    padding-right: 162px;
+    align-items: center;
+  }
+  .twin__hint { display: none; }
+}
+
+.twin__head {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  pointer-events: none;
+}
+.twin__title { color: var(--ink); font-weight: var(--weight-emphasis); font-size: var(--fs-sm); }
+.twin__hint {
+  color: var(--petrol);
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  border-bottom: 2px solid var(--petrol);
+  padding-bottom: 2px;
+}
+
+/* ---------- The hall ---------- */
+
+/* Reference plan materials: orange open racks, blue/olive containers, and
+   returnable crates whose colours remain distinct in either page theme. */
+.iso-material--rack { --material: #dc9139; }
+.iso-material--rack-post { --material: #68767a; }
+.iso-material--container-blue { --material: #35577b; }
+.iso-material--container-olive { --material: #807740; }
+.iso-material--tote-cream { --material: #c6bea0; }
+.iso-material--tote-dark { --material: #465968; }
+.iso-material--tote-green { --material: #5d9d53; }
+.iso-material--tote-red { --material: #c66845; }
+.iso-material--tote-yellow { --material: #c7a443; }
+.iso-material--table { --material: #795331; }
+.iso-material--film { --material: #e7e4d1; }
+.iso-material > polygon { stroke: color-mix(in srgb, var(--material) 60%, #263b47); stroke-width: .45; stroke-linejoin: round; }
+.iso-material > [class$="-top"] { fill: color-mix(in srgb, var(--material) 80%, white); }
+.iso-material > [class$="-right"] { fill: color-mix(in srgb, var(--material) 78%, black); }
+.iso-material > [class$="-left"] { fill: var(--material); }
+.iso-main-aisle { fill: color-mix(in srgb, var(--hall-top) 68%, #aeb8bd); stroke: var(--hall-grid); stroke-width: 1.2; }
+.iso-pedestrian-strip { fill: #ddab7e; opacity: .8; }
+.iso-pallet-pad { fill: color-mix(in srgb, var(--hall-top) 80%, #a9b2a1); stroke: #c3a43c; stroke-width: 2.5; }
+.iso-pallet-slats { fill: none; stroke: #647276; stroke-width: 2.4; }
+.iso-rack-brace { fill: none; stroke: #99652d; stroke-width: 2; stroke-linecap: round; }
+.iso-tote-opening { fill: #354955; fill-opacity: .6; }
+.iso-tote-rib { fill: none; stroke: #344b5b; stroke-opacity: .6; stroke-width: 1; }
+.iso-wrapper-base { fill: var(--machine-deep); stroke: #7f733b; stroke-width: 2; }
+.iso-wrapper-top { fill: var(--machine); stroke: #7f733b; stroke-width: 1.2; }
+.iso-wrapper-hub { fill: none; stroke: #7f733b; stroke-width: 1.2; }
+.iso-area-labels { pointer-events: none; }
+.iso-area-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--ink-2);
+  paint-order: stroke;
+  stroke: var(--hall-top);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.iso-floor-top   { fill: var(--hall-top); }
+.iso-floor-left  { fill: var(--hall-left); }
+.iso-floor-right { fill: var(--hall-right); }
+.iso-grid        { stroke: var(--hall-grid); stroke-width: 1; fill: none; }
+
+/* Each zone is painted on the floor in its own station colour, the way a real
+   plant paints its bays. */
+.iso-zone {
+  fill: color-mix(in srgb, var(--petrol) 12%, transparent);
+  stroke: var(--petrol);
+  stroke-width: 1.6;
+  stroke-dasharray: 9 7;
+  opacity: .8;
+}
+.iso-zone:nth-of-type(2) {
+  fill: color-mix(in srgb, var(--oxide) 12%, transparent);
+  stroke: var(--oxide);
+}
+.iso-zone:nth-of-type(3) {
+  fill: color-mix(in srgb, var(--moss) 14%, transparent);
+  stroke: var(--moss);
+}
+
+/* The five of us, in two rows facing each other. */
+.iso-chat-box {
+  fill: var(--panel-2);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.iso-chat-tail { fill: var(--panel-2); }
+.iso-chat-dot  { fill: var(--ink-3); }
+.iso-chat {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  opacity: 0;
+}
+
+
+.iso-hair-top   { fill: color-mix(in srgb, var(--hair) 84%, #FFFFFF); }
+.iso-hair-left  { fill: var(--hair); }
+.iso-hair-right { fill: color-mix(in srgb, var(--hair) 90%, #FFFFFF); }
+
+.iso-member-name {
+  fill: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--hall-top);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.iso-member:hover .iso-member-name { fill: var(--ink); }
+.iso-member { cursor: pointer; }
+.iso-member-name, .iso-member .iso-chat { display: none; }
+.twin__crew-controls { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.twin__person-leaders { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.twin__person-leaders line { stroke: var(--petrol); stroke-opacity: .55; stroke-width: 1; }
+.twin__person {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 2px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  pointer-events: auto;
+  cursor: pointer;
+  font: 600 11px var(--font-mono);
+}
+.twin__person span { padding: 4px 7px; border: 1px solid var(--line); border-radius: 20px; background: var(--panel-2); box-shadow: 0 2px 5px #0002; }
+.twin__person:hover span, .twin__person.is-greeting span { color: var(--petrol); border-color: var(--petrol); }
+.twin__person:focus-visible { outline: 2px solid var(--petrol); outline-offset: 1px; }
+@container (max-height: 220px) {
+  .twin__person { min-width: 32px; height: 28px; font-size: 10px; }
+  .twin__person span { padding: 3px 5px; }
+}
+.iso-member:focus { outline: none; }
+.iso-member-hit { fill: transparent; pointer-events: all; }
+.iso-member:focus-visible .iso-member-hit {
+  fill: color-mix(in srgb, var(--petrol) 14%, transparent);
+  stroke: var(--petrol);
+  stroke-width: 2;
+}
+.iso-member.is-greeting .iso-chat { display: none; }
+.iso-member.is-greeting .iso-member-name { fill: var(--petrol); }
+.twin__greeting {
+  position: absolute;
+  z-index: 8;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  display: grid;
+  gap: 3px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-bottom: 3px solid var(--petrol);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+}
+.twin__greeting strong { font-family: var(--font-mono); font-size: 11px; color: var(--petrol); }
+.twin__greeting span { font-size: 16px; font-weight: 600; }
+.twin__greeting::after {
+  content: "";
+  position: absolute;
+  left: var(--tip-arrow, 50%);
+  bottom: -7px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--panel-2);
+}
+.twin__greeting.is-below::after { top: -6px; bottom: auto; }
+
+.iso-crewA-top   { fill: color-mix(in srgb, var(--crew-a) 80%, #FFFFFF); }
+.iso-crewA-left  { fill: var(--crew-a); }
+.iso-crewA-right { fill: color-mix(in srgb, var(--crew-a) 90%, #FFFFFF); }
+
+.iso-crewB-top   { fill: color-mix(in srgb, var(--crew-b) 80%, #FFFFFF); }
+.iso-crewB-left  { fill: var(--crew-b); }
+.iso-crewB-right { fill: color-mix(in srgb, var(--crew-b) 90%, #FFFFFF); }
+
+.iso-crewC-top   { fill: color-mix(in srgb, var(--crew-c) 80%, #FFFFFF); }
+.iso-crewC-left  { fill: var(--crew-c); }
+.iso-crewC-right { fill: color-mix(in srgb, var(--crew-c) 90%, #FFFFFF); }
+
+.iso-crewD-top   { fill: color-mix(in srgb, var(--crew-d) 80%, #FFFFFF); }
+.iso-crewD-left  { fill: var(--crew-d); }
+.iso-crewD-right { fill: color-mix(in srgb, var(--crew-d) 90%, #FFFFFF); }
+
+.iso-crewE-top   { fill: color-mix(in srgb, var(--crew-e) 80%, #FFFFFF); }
+.iso-crewE-left  { fill: var(--crew-e); }
+.iso-crewE-right { fill: color-mix(in srgb, var(--crew-e) 90%, #FFFFFF); }
+
+/* The building shell. */
+.iso-wall-top   { fill: color-mix(in srgb, var(--wall) 92%, #FFFFFF); }
+.iso-wall-left  { fill: color-mix(in srgb, var(--wall) 72%, #000000); }
+.iso-wall-right { fill: var(--wall); }
+
+.iso-wallrib-top   { fill: var(--wall-rib); }
+.iso-wallrib-left  { fill: color-mix(in srgb, var(--wall-rib) 78%, #000000); }
+.iso-wallrib-right { fill: color-mix(in srgb, var(--wall-rib) 90%, #000000); }
+
+.iso-beamrail-top   { fill: var(--column); }
+.iso-beamrail-left  { fill: color-mix(in srgb, var(--column) 66%, #000000); }
+.iso-beamrail-right { fill: color-mix(in srgb, var(--column) 82%, #000000); }
+
+.iso-column-top   { fill: color-mix(in srgb, var(--column) 94%, #FFFFFF); }
+.iso-column-left  { fill: color-mix(in srgb, var(--column) 64%, #000000); }
+.iso-column-right { fill: var(--column); }
+
+/* Paint on the floor. */
+.iso-walkway { fill: var(--paint-walk); opacity: .5; }
+.iso-hatch   { stroke: var(--paint-walk); stroke-width: 1.4; fill: none; opacity: .8; }
+.iso-lane    { stroke: var(--paint-lane); stroke-width: 2.4; fill: none; opacity: .65; }
+.iso-chevron { stroke: var(--paint-lane); stroke-width: 2.6; fill: none; opacity: .55; stroke-linecap: round; }
+
+/* High bay lighting. */
+.iso-pool  { fill: url(#pool); pointer-events: none; }
+.pool-in   { stop-color: var(--pool); }
+.pool-out  { stop-color: transparent; }
+
+.iso-steel-top   { fill: var(--hall-steel); }
+.iso-steel-left  { fill: var(--hall-steel-2); }
+.iso-steel-right { fill: var(--hall-steel-3); }
+
+.iso-shadow-top   { fill: var(--petrol); }
+.iso-shadow-left  { fill: color-mix(in srgb, var(--petrol) 70%, #000000); }
+.iso-shadow-right { fill: color-mix(in srgb, var(--petrol) 85%, #000000); }
+
+/* The dark opening stays in place behind the receiving shutter. */
+.iso-doorway-top, .iso-doorway-left { fill: var(--tyre); }
+.iso-doorway-right { fill: color-mix(in srgb, var(--tyre) 75%, #000000); }
+.iso-gate-slat {
+  fill: none;
+  stroke: color-mix(in srgb, var(--petrol) 65%, #000000);
+  stroke-width: 1;
+}
+
+.iso-beam-top   { fill: var(--machine); }
+.iso-beam-left  { fill: var(--machine-deep); }
+.iso-beam-right { fill: color-mix(in srgb, var(--machine) 80%, #000000); }
+
+/* Empty returnable crates: same family as a carton, drained of colour, so a
+   glance separates stock going in from packaging going back. */
+.iso-empties-top   { fill: color-mix(in srgb, var(--carton) 42%, var(--panel-2)); }
+.iso-empties-left  { fill: color-mix(in srgb, var(--carton-deep) 55%, var(--panel)); }
+.iso-empties-right { fill: color-mix(in srgb, var(--carton) 32%, var(--panel)); }
+
+.iso-load-top   { fill: var(--carton); }
+.iso-load-left  { fill: var(--carton-deep); }
+.iso-load-right { fill: color-mix(in srgb, var(--carton) 78%, #000000); }
+
+.iso-cab-top   { fill: var(--truck-cab); }
+.iso-cab-left  { fill: color-mix(in srgb, var(--truck-cab) 62%, #000000); }
+.iso-cab-right { fill: color-mix(in srgb, var(--truck-cab) 80%, #000000); }
+
+.iso-cont-top   { fill: color-mix(in srgb, var(--cont-body) 82%, #FFFFFF); }
+.iso-cont-left  { fill: color-mix(in srgb, var(--cont-body) 66%, #000000); }
+.iso-cont-right { fill: var(--cont-body); }
+
+.iso-rib-top   { fill: color-mix(in srgb, var(--cont-body) 60%, #000000); }
+.iso-rib-left  { fill: color-mix(in srgb, var(--cont-body) 48%, #000000); }
+.iso-rib-right { fill: color-mix(in srgb, var(--cont-body) 54%, #000000); }
+
+.iso-glass-top   { fill: var(--truck-glass); }
+.iso-glass-left  { fill: color-mix(in srgb, var(--truck-glass) 70%, #000000); }
+.iso-glass-right { fill: color-mix(in srgb, var(--truck-glass) 85%, #000000); }
+
+.iso-tyre-disc { fill: var(--tyre); }
+.iso-hub-disc  { fill: color-mix(in srgb, var(--tyre) 45%, #FFFFFF); }
+.iso-spoke     { stroke: var(--tyre); stroke-width: 1.2; fill: none; }
+
+.iso-tyre-top   { fill: color-mix(in srgb, var(--tyre) 80%, #FFFFFF); }
+.iso-tyre-left  { fill: var(--tyre); }
+.iso-tyre-right { fill: color-mix(in srgb, var(--tyre) 88%, #FFFFFF); }
+
+.iso-machine-top   { fill: color-mix(in srgb, var(--machine) 88%, #FFFFFF); }
+.iso-machine-left  { fill: color-mix(in srgb, var(--machine) 58%, #000000); }
+.iso-machine-right { fill: var(--machine); }
+
+/* The operator walking the aisle. The vest uses the machinery yellow, never
+   the hazard yellow, which is reserved for a discrepancy. */
+.iso-vest-top   { fill: color-mix(in srgb, var(--machine) 88%, #FFFFFF); }
+.iso-vest-left  { fill: color-mix(in srgb, var(--machine) 62%, #000000); }
+.iso-vest-right { fill: var(--machine); }
+
+.iso-trouser-top   { fill: color-mix(in srgb, var(--op-trouser) 78%, #FFFFFF); }
+.iso-trouser-left  { fill: var(--op-trouser); }
+.iso-trouser-right { fill: color-mix(in srgb, var(--op-trouser) 86%, #FFFFFF); }
+
+.iso-skin-top   { fill: color-mix(in srgb, var(--op-skin) 92%, #FFFFFF); }
+.iso-skin-left  { fill: color-mix(in srgb, var(--op-skin) 70%, #000000); }
+.iso-skin-right { fill: var(--op-skin); }
+
+.iso-helmet-top   { fill: var(--op-helmet); }
+.iso-helmet-left  { fill: color-mix(in srgb, var(--op-helmet) 62%, #000000); }
+.iso-helmet-right { fill: color-mix(in srgb, var(--op-helmet) 82%, #000000); }
+
+/* ---------- The aisle ---------- */
+
+.iso-route {
+  stroke: var(--machine);
+  stroke-width: 10;
+  stroke-linecap: round;
+  fill: none;
+  opacity: .45;
+}
+.iso-route-flow {
+  stroke: rgba(61, 205, 88, .34);
+  stroke-width: 2;
+  stroke-dasharray: 10 16;
+  fill: none;
+}
+.iso-route-done {
+  stroke: var(--se-green);
+  stroke-width: 4;
+  stroke-linecap: round;
+  fill: none;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 900ms var(--ease);
+}
+
+/* ---------- Hover areas ----------
+   The whole bay is the target, not the dot, so the pointer finds it easily. */
+
+.iso-hit {
+  fill: var(--node, var(--petrol));
+  opacity: 0;
+  pointer-events: all;
+  cursor: pointer;
+  transition: opacity var(--dur) var(--ease);
+}
+.iso-node:hover .iso-hit,
+.iso-area-hit:hover .iso-hit,
+.iso-node:focus-visible .iso-hit { opacity: .16; }
+.iso-area-hit, [data-layout-area="gr"], [data-layout-area="putaway"], [data-layout-area="interlock"] { cursor: pointer; }
+
+/* ---------- The hover card ---------- */
+
+.twin__tip {
+  position: absolute;
+  z-index: 5;
+  width: min(300px, calc(100% - 24px));
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--panel-2);
+  border: 0;
+  border-left: 5px solid var(--tip);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lift);
+  pointer-events: none;
+  display: grid;
+  gap: 2px;
+}
+.twin__tip { --tip: var(--petrol); }
+.twin__tip.is-2 { --tip: var(--oxide); }
+.twin__tip.is-3 { --tip: var(--moss); }
+
+/* A pointer down to the node it describes. */
+.twin__tip::after {
+  content: "";
+  position: absolute;
+  left: var(--tip-arrow, 50%);
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--panel-2);
+}
+
+.twin__tip-step {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--tip);
+  font-weight: 600;
+}
+.twin__tip.is-below::after { top: -7px; bottom: auto; }
+.twin__tip-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  letter-spacing: -.02em;
+  color: var(--ink);
+}
+.twin__tip-role { font-size: var(--fs-sm); color: var(--ink-2); }
+.twin__tip-go {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  color: var(--tip);
+}
+.twin__tip.is-done .twin__tip-step::after {
+  content: " ✓";
+  color: var(--se-green);
+}
+
+/* ---------- Mission nodes ---------- */
+
+.iso-node { cursor: pointer; }
+.iso-node:focus { outline: none; }
+.iso-node { --node: var(--petrol); }
+.iso-node:focus-visible .iso-node-pad { stroke-width: 4; fill-opacity: .42; }
+.iso-node--2 { --node: var(--oxide); }
+.iso-node--3 { --node: var(--moss); }
+
+.iso-node-pad {
+  fill: var(--node, var(--petrol));
+  fill-opacity: .2;
+  stroke: var(--node, var(--petrol));
+  stroke-width: 2;
+}
+.iso-node-ping {
+  fill: none;
+  stroke: var(--node, var(--petrol));
+  stroke-width: 2;
+  opacity: 0;
+}
+.iso-node-dot { fill: var(--node, var(--petrol)); }
+
+
+.iso-node .iso-node-pad { transition: fill var(--dur) var(--ease), stroke var(--dur) var(--ease); }
+.iso-node:hover .iso-node-pad { fill-opacity: .42; }
+
+.iso-node.is-done .iso-node-pad {
+  fill: var(--se-green);
+  fill-opacity: .18;
+  stroke: var(--se-green);
+}
+.iso-node.is-done .iso-node-dot { fill: var(--se-green); }
+.iso-node.is-done .iso-node-ping { display: none; }
+
+@media (max-width: 640px) {
+  .twin__svg { max-height: 62vh; }
+  /* Both captions on one line is more words than this width can hold, and they
+     wrapped into each other. The title survives in the header nav and the hint
+     stays above the hall, so drop the longer of the two. */
+  .twin__title { display: none; }
+  .twin__head { justify-content: flex-end; }
+}
+
+/* With motion reduced the lane holds one truck parked under load. */
+@media (prefers-reduced-motion: reduce) {
+  .iso-dock-gate { transform: translateY(-54px); }
+  .iso-shipping { opacity: 1; transform: none; }
+  .iso-dock-truck { opacity: 1; transform: none; }
+  .iso-inbound, .iso-returns { opacity: 0; }
+  .iso-shipment { opacity: 0; }   /* the bench already shows a built pallet */
+  .iso-chat { opacity: 1; }       /* bubbles stay open rather than flashing */
+}

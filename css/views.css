@@ -1,0 +1,223 @@
+/* Full screen views. Nothing scrolls to reach a station. */
+
+html, body { height: 100%; }
+body { overflow: hidden; }
+
+/* Paper grain over everything, so surfaces read as material not as chrome. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--grain);
+  pointer-events: none;
+  z-index: 70;
+}
+
+.view {
+  position: fixed;   /* load bearing: gives the view its height */
+  inset: 0;
+  top: var(--topbar-h);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+.view:not(.is-active) { display: none; }
+
+/* The project document scrolls within the active view. */
+.view--doc { overflow-y: auto; padding-bottom: var(--sp-7); }
+
+/* ---------- Home: a fitted warehouse canvas ----------
+   The copy stays in the lower-left corner at every viewport and zoom level.
+   The canvas owns its dimensions; neither the scene nor copy adds a scroll. */
+#view-home.is-active {
+  display: block;
+  overflow: hidden;
+}
+#view-home .twin {
+  --scene-pad: clamp(12px, 2.2vmin, 32px);
+  --copy-height: 220px;
+  --scene-head-height: 48px;
+  position: absolute;
+  inset: 0;
+  border: 0;
+  display: block;
+  container-type: size;
+}
+#view-home .twin__head {
+  position: absolute;
+  top: var(--scene-pad);
+  left: var(--scene-pad);
+  width: calc(100% - 2 * var(--scene-pad));
+  z-index: 2;
+}
+#view-home #twin-stage {
+  position: absolute;
+  inset: 0;
+}
+#view-home .twin__svg {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  display: block;
+}
+
+/* ---------- A station view ----------
+   Each station carries its own colour on a painted spine and a stencilled
+   number, so the three do not read as one template repeated. */
+
+#view-gr        { --station: var(--petrol); --station-soft: var(--petrol-soft); }
+#view-putaway   { --station: var(--oxide); --station-soft: var(--oxide-soft); }
+#view-interlock { --station: var(--moss);  --station-soft: var(--moss-soft); }
+
+.view[id^="view-"] .app-view { position: relative; }
+
+/* The stencilled number, set into the background rather than printed on top. */
+.app-view::before {
+  content: attr(data-figure);
+  position: absolute;
+  right: -.06em;
+  bottom: -.22em;
+  font-family: var(--font-mono);
+  font-size: clamp(14rem, 34vh, 26rem);
+  font-weight: 700;
+  line-height: .8;
+  color: var(--station);
+  opacity: .07;
+  pointer-events: none;
+  z-index: 0;
+}
+.app-view > * { position: relative; z-index: 1; }
+
+/* ---------- A station view ---------- */
+
+.app-view {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: var(--sp-6);
+  align-items: center;
+  /* 'safe' matters: with plain centring, content taller than the view overflows
+     equally in both directions and the top half becomes unreachable. Safe
+     centring falls back to start-alignment exactly when that would happen. */
+  align-items: safe center;
+  width: min(100% - 3rem, var(--wrap));
+  margin-inline: auto;
+  padding-block: var(--sp-5);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.app-view__brief {
+  min-width: 0;
+  padding-left: var(--sp-5);
+  border-left: 6px solid var(--station);
+}
+
+.app-view__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--station);
+  margin-bottom: var(--sp-3);
+}
+.app-view__eyebrow .station__icon { color: var(--station); }
+.app-view__brief .taglist li {
+  border-color: var(--station);
+  background: var(--station-soft);
+  color: var(--station);
+}
+.app-view .back-link:hover { color: var(--station); }
+.app-view__screen .terminal { border-top: 5px solid var(--station); }
+.app-view__brief h2 { margin-bottom: var(--sp-2); }
+.app-view__role { color: var(--ink-2); font-size: var(--fs-sm); margin-bottom: var(--sp-4); }
+.app-view__brief p { font-size: var(--fs-sm); color: var(--ink-2); }
+.app-view__actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-5); }
+
+.app-view__screen { min-width: 0; display: flex; justify-content: center; }
+.app-view__screen .terminal { margin: 0; width: 100%; max-width: 640px; }
+.app-view__screen .scr__body { max-height: 52vh; overflow-y: auto; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: transparent;
+  border: 0;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--weight-emphasis);
+  cursor: pointer;
+  padding: 0;
+}
+.back-link:hover { color: var(--ink); }
+.back-link svg { width: 18px; height: 18px; }
+
+/* ---------- Progress, shown on every view ---------- */
+
+.dots { display: flex; align-items: center; gap: var(--sp-2); }
+.dots__dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.dots__dot.is-filled { background: var(--se-green); transform: scale(1.25); }
+
+/* ---------- The forklift transition ---------- */
+
+.transition {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+}
+.transition__curtain {
+  position: absolute;
+  inset: 0;
+  background: var(--steel);
+  transform: translateX(-102%);
+}
+[data-theme="dark"] .transition__curtain { background: #0A0D0F; }
+.transition__truck {
+  position: absolute;
+  bottom: 12%;
+  left: 0;
+  width: min(46vw, 520px);
+  transform: translateX(-40vw);
+}
+.transition__truck svg { width: 100%; height: auto; }
+
+@media (max-width: 1100px) {
+  .app-view {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-4);
+    align-content: start;
+    align-items: start;
+  }
+  .app-view__screen .scr__body { max-height: none; }
+  .transition__truck { width: 72vw; bottom: 16%; }
+
+}
+
+
+/* Leave the corner copy its own room in a narrow canvas. Both regions remain
+   fitted to the same screen instead of forming a taller, scrolling page. */
+@container (max-aspect-ratio: 7/5) {
+  #view-home #twin-stage {
+    inset: var(--scene-head-height) 0 calc(var(--copy-height) + 2 * var(--scene-pad));
+  }
+}
+@container (max-height: 340px) and (min-aspect-ratio: 7/5) {
+  #view-home #twin-stage { inset: var(--scene-head-height) 0 0 46%; }
+}
+
+@media (max-width: 640px) {
+  .app-view { width: calc(100% - 2rem); }
+  .app-view__brief { padding-left: var(--sp-3); }
+  .app-view__eyebrow { flex-wrap: wrap; }
+}

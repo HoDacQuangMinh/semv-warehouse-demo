@@ -1,0 +1,212 @@
+/* Page level layout. */
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--material-thick);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  min-height: var(--topbar-base);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  text-decoration: none;
+  margin-right: auto;
+  min-width: 0;
+}
+.brand__mark { width: 26px; height: 26px; flex: none; color: var(--se-green-deep); }
+.brand__text { display: flex; flex-direction: column; line-height: 1.2; }
+.brand__name { font-weight: 600; letter-spacing: -.01em; }
+.brand__sub { font-size: var(--fs-xs); color: var(--ink-3); }
+
+.topbar__nav { display: flex; gap: var(--sp-5); }
+.topbar__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  text-decoration: none;
+  padding-block: var(--sp-2);
+  border-bottom: 2px solid transparent;
+}
+.topbar__nav a:hover { color: var(--ink); border-bottom-color: var(--se-green); }
+.topbar__nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--se-green); }
+
+.topbar__tools { display: flex; flex: none; gap: var(--sp-2); }
+
+/* ---------- Section bands ---------- */
+
+.band { padding-block: var(--sp-7); border-top: 1px solid var(--line); }
+.band--alt { background: var(--panel); }
+.band > .wrap > h2 { margin-bottom: var(--sp-3); }
+
+.section-lede {
+  color: var(--ink-2);
+  max-width: 60ch;
+  margin-bottom: var(--sp-6);
+}
+
+.note {
+  margin-top: var(--sp-5);
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+  border-left: 2px solid var(--line);
+  padding-left: var(--sp-3);
+}
+
+.fineprint { font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* ---------- Hero ---------- */
+
+.hero { padding-block: var(--sp-7) var(--sp-6); }
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-7);
+  align-items: center;
+}
+
+.hero__text h1 { margin-bottom: var(--sp-4); }
+.hero__text .lede { margin-bottom: var(--sp-3); }
+.hero__text .btn { margin-top: var(--sp-4); }
+
+/* ---------- Stations ---------- */
+
+.station {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+}
+.station:last-of-type { border-bottom: 1px solid var(--line); }
+
+.station__rail {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--sp-6);
+}
+.station__rail::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 8px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--machine) 0 6px,
+    transparent 6px 12px
+  );
+  opacity: .32;
+}
+.station__num {
+  position: relative;
+  width: 30px; height: 30px;
+  display: grid;
+  place-items: center;
+  background: var(--floor);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.band--alt .station__num { background: var(--panel); }
+.station.is-done .station__num {
+  background: var(--verified-wash);
+  border-color: var(--se-green);
+  color: var(--se-green-deep);
+}
+
+.station__body { padding: var(--sp-6) 0 var(--sp-7) var(--sp-5); }
+
+.station__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.station__icon { width: 32px; height: 32px; color: var(--steel); margin-top: 2px; }
+.station__title h3 { font-size: var(--fs-h2); margin-bottom: var(--sp-1); }
+.station__role { color: var(--ink-2); font-size: var(--fs-sm); margin: 0; }
+
+/* ---------- Flow board ---------- */
+
+.flow__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+.flow__reset { margin-top: var(--sp-6); }
+
+/* ---------- Footer ---------- */
+
+.footer { border-top: 1px solid var(--line); padding-block: var(--sp-5); }
+.footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: baseline;
+  justify-content: space-between;
+}
+.footer__note { font-size: var(--fs-sm); color: var(--ink-3); margin: 0; max-width: 60ch; }
+.footer__links { display: flex; gap: var(--sp-4); font-size: var(--fs-sm); }
+.footer__links a { color: var(--ink-2); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1100px) {
+  .topbar__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--sp-3);
+    padding-top: var(--sp-2);
+  }
+  .topbar__nav { grid-column: 1 / -1; grid-row: 2; gap: var(--sp-5); }
+  .topbar__tools { grid-column: 2; grid-row: 1; }
+  .brand__sub { display: none; }
+}
+
+@media (max-width: 900px) {
+  .hero__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  h1 { max-width: 20ch; }
+  .flow__steps { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 640px) {
+  /* The bar has to fit --topbar-base, because that is what the views offset by.
+     The subtitle is the first thing to go: it is the longest string in the
+     header and the only one that wraps to a third line in Vietnamese. */
+  :root { --topbar-base: 56px; --topbar-h: 56px; }
+  .brand__sub { display: none; }
+  .station { grid-template-columns: 40px minmax(0, 1fr); }
+  .station__body { padding-left: var(--sp-4); }
+  .station__head { grid-template-columns: auto minmax(0, 1fr); }
+  .station__head .stamp { grid-column: 2; justify-self: start; }
+  .band { padding-block: var(--sp-6); }
+}
+
+/* Below this the two tool buttons cannot keep their labels and still leave the
+   brand a readable width, so they fall back to icons. The accessible name comes
+   from aria-label, set alongside the label text in main.js. */
+@media (max-width: 460px) {
+  .icon-btn { padding: .42rem; min-width: var(--hit); justify-content: center; }
+  .icon-btn span { display: none; }
+  .brand { gap: var(--sp-2); }
+  .brand__name { font-size: var(--fs-sm); }
+  .topbar__tools { gap: var(--sp-1); }
+}

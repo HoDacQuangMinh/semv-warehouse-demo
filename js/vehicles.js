@@ -1,0 +1,131 @@
+/* Turn in plan coordinates, then project: the cab stays upright while the
+   truck turns, reverses to its dock, loads, and drives away cab first. */
+(function (global) {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+  function mix(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
+
+  function pose(progress, dockX, receiving) {
+    var side = receiving ? -1 : 1;
+    var dockAt = receiving ? .14 : .20, leaveAt = receiving ? .68 : .60;
+    var turnAt = receiving ? .04 : .05, reverseAt = receiving ? .09 : .13;
+    var exitTurnAt = receiving ? .76 : .70, goneAt = receiving ? .84 : .80;
+    var bendX = dockX + side * 21;
+    var parked = {x:dockX, y:37, angle:-90, phase:'loading'};
+    if (progress < turnAt) {
+      return {x:mix(bendX + side * 22,bendX,progress / turnAt),y:53,angle:receiving ? -180 : 0,phase:'approaching'};
+    }
+    if (progress < reverseAt) {
+      var t = (progress - turnAt) / (reverseAt - turnAt);
+      var a = (-90 - side * t * 90) * Math.PI / 180;
+      return {x:bendX + Math.cos(a) * 21,y:74 + Math.sin(a) * 21,
+        angle:mix(receiving ? -180 : 0,-90,t),phase:'turning'};
+    }
+    if (progress < dockAt) {
+      return {x:dockX,y:mix(74,37,(progress - reverseAt) / (dockAt - reverseAt)),angle:-90,phase:'reversing'};
+    }
+    if (progress < leaveAt) { return parked; }
+    if (progress < exitTurnAt) {
+      return {x:dockX,y:mix(37,64,(progress - leaveAt) / (exitTurnAt - leaveAt)),angle:-90,phase:'departing'};
+    }
+    var exitT = Math.min(1,(progress - exitTurnAt) / (goneAt - exitTurnAt));
+    var exitA = (receiving ? exitT * 90 : 180 - exitT * 90) * Math.PI / 180;
+    return {x:bendX + Math.cos(exitA) * 21,y:64 + Math.sin(exitA) * 21,
+      angle:mix(-90,receiving ? 0 : -180,exitT),phase:progress < goneAt ? 'turning-out' : 'away'};
+  }
+
+  function createMesh(node, options) {
+    var opts = options;
+    var parts = opts.vehicle.specs.map(function (spec) {
+      var group = document.createElementNS(NS,'g');
+      var faces = ['top','right','left'].map(function (face) {
+        var polygon = document.createElementNS(NS,'polygon');
+        polygon.setAttribute('class','iso-' + spec[5] + '-' + face);
+        group.appendChild(polygon);
+        return polygon;
+      });
+      node.appendChild(group);
+      return {spec:spec,group:group,faces:faces};
+    });
+    var wheelGroup = document.createElementNS(NS,'g');
+    node.appendChild(wheelGroup);
+    var wheels = opts.vehicle.wheels.map(function (spec) {
+      var tyre = document.createElementNS(NS,'polygon');
+      var hub = document.createElementNS(NS,'polygon');
+      tyre.setAttribute('class','iso-tyre-disc'); hub.setAttribute('class','iso-hub-disc');
+      wheelGroup.appendChild(tyre); wheelGroup.appendChild(hub);
+      return {spec:spec,tyre:tyre,hub:hub};
+    });
+    var previous = '', previousAngle = null;
+
+    function draw(state) {
+      var signature = [state.x,state.y,state.angle,state.lift || 0,state.z || 0].map(function (n) { return n.toFixed(2); }).join(',');
+      node.dataset.vehiclePhase = state.phase;
+      if (signature === previous) { return; }
+      previous = signature;
+      node.dataset.vehicleX = state.x.toFixed(2);
+      node.dataset.vehicleY = state.y.toFixed(2);
+      node.dataset.vehicleHeading = state.angle.toFixed(2);
+      var a = state.angle * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      function world(x,y) {
+        x -= opts.pivot ? opts.pivot[0] : 4.1; y -= opts.pivot ? opts.pivot[1] : 3;
+        return [state.x + x * c - y * s,state.y + x * s + y * c];
+      }
+      function point(x,y,z) {
+        var xy = world(x,y);
+        return opts.project(xy[0],xy[1],z).join(',');
+      }
+      parts.forEach(function (part) {
+        var b = part.spec, x=b[0], y=b[1], w=b[2], d=b[3];
+        var z=(b[6] || 0)+(b[7]==='carriage' ? state.lift || 0 : state.z || 0);
+        var top=z+b[4]+(b[7]==='mast' ? Math.max(0,(state.lift || 0)-3) : 0);
+        var faceX = c + s >= 0 ? x + w : x;
+        var faceY = c - s >= 0 ? y + d : y;
+        part.faces[0].setAttribute('points',[point(x,y,top),point(x+w,y,top),point(x+w,y+d,top),point(x,y+d,top)].join(' '));
+        part.faces[1].setAttribute('points',[point(faceX,y,top),point(faceX,y+d,top),point(faceX,y+d,z),point(faceX,y,z)].join(' '));
+        part.faces[2].setAttribute('points',[point(x,faceY,top),point(x+w,faceY,top),point(x+w,faceY,z),point(x,faceY,z)].join(' '));
+        var center = world(x+w/2,y+d/2);
+        part.depth = center[0] + center[1] + z * .001;
+      });
+      if (previousAngle !== state.angle) {
+        parts.slice().sort(function (a,b) { return a.depth-b.depth; }).forEach(function (part) { node.insertBefore(part.group,wheelGroup); });
+        previousAngle = state.angle;
+      }
+      wheels.forEach(function (wheel) {
+        var w=wheel.spec, sideY=c-s >= 0 ? w[1] : (opts.wheelMirrorY===undefined ? 6 : opts.wheelMirrorY)-w[1];
+        function circle(radius) {
+          var points=[];
+          for(var i=0;i<16;i++) {
+            var angle=i*Math.PI/8;
+            points.push(point(w[0]+radius*Math.cos(angle),sideY,w[2]+radius*Math.sin(angle)));
+          }
+          return points.join(' ');
+        }
+        wheel.tyre.setAttribute('points',circle(w[3]));
+        wheel.hub.setAttribute('points',circle(w[3]*.4));
+      });
+    }
+    return {draw:draw};
+  }
+
+  function create(node, opts) {
+    var mesh=createMesh(node,opts), current;
+    function draw(progress) {
+      current=pose(progress,opts.x,opts.receiving);
+      current.progress=progress;
+      mesh.draw(current);
+    }
+    draw(.4);
+    return {
+      state:function () { return current; },
+      update:function (still) {
+        var animation=node.getAnimations()[0];
+        if(still || !animation) { draw(.4); return; }
+        var duration=animation.effect.getTiming().duration;
+        var delay=animation.effect.getTiming().delay;
+        draw((((animation.currentTime || 0)-delay)%duration+duration)%duration/duration);
+      }
+    };
+  }
+  global.WarehouseVehicles={create:create,createMesh:createMesh,pose:pose};
+})(window);

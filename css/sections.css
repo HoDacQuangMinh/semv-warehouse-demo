@@ -1,0 +1,251 @@
+/* Styles for the content sections: hero scan block, pain points, the manual
+   challenge, results, specifications, video slot and team. */
+
+/* ---------- Hero scan block ---------- */
+
+.scanbox {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: stretch;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-flat);
+}
+
+.scanbox__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  overflow: hidden;
+  padding: var(--sp-3);
+}
+.carton { width: 100%; height: auto; }
+.cn-face { fill: var(--carton); }
+.cn-side { fill: color-mix(in srgb, var(--carton) 78%, #000000); }
+.cn-top  { fill: color-mix(in srgb, var(--carton) 86%, #FFFFFF); }
+.cn-seam { stroke: var(--carton-deep); stroke-width: 2; fill: none; }
+.cn-tape { fill: color-mix(in srgb, var(--carton) 60%, #FFFFFF); }
+.cn-label { fill: #FBFAF7; stroke: var(--carton-deep); stroke-width: 1; }
+.cn-bars rect, .cn-matrix rect { fill: var(--ink); }
+.cn-code { fill: var(--ink); font-family: var(--font-mono); font-size: 11px; }
+
+.scanbox__beam {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 4px;
+  background: var(--scan);
+  box-shadow: 0 0 16px 4px color-mix(in srgb, var(--scan) 55%, transparent);
+  opacity: 0;
+}
+
+.scanbox__panel { display: flex; flex-direction: column; gap: var(--sp-3); }
+.scanbox__status { margin: 0; font-size: var(--fs-sm); color: var(--ink-3); }
+.scanbox__status.is-verified { color: var(--se-green-deep); font-weight: 600; }
+
+.scanbox__out { margin: 0; flex: 1; }
+.scanbox__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: .34rem 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--fs-sm);
+}
+.scanbox__row dt { color: var(--ink-3); }
+.scanbox__row dd { margin: 0; }
+
+/* ---------- Pain points ---------- */
+
+.pains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
+.pain {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--hazard);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+}
+.pain__stat {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--hazard-deep);
+  background: var(--hazard-wash);
+  border: 1px dashed var(--hazard);
+  padding: .16rem .45rem;
+  margin-bottom: var(--sp-3);
+}
+.pain h3 { margin-bottom: var(--sp-2); }
+.pain p { font-size: var(--fs-sm); color: var(--ink-2); }
+.pain__source { font-size: var(--fs-xs); color: var(--ink-3); margin: var(--sp-3) 0 0; }
+
+/* ---------- Manual challenge ---------- */
+
+.ch {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+}
+.ch--idle { display: grid; place-items: center; padding: var(--sp-6); }
+
+.ch__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: var(--sp-3);
+}
+.ch__time { font-size: var(--fs-sm); color: var(--ink-2); }
+.btn-flag {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: .34rem .7rem;
+  cursor: pointer;
+}
+.btn-flag.is-on { border-color: var(--hazard); background: var(--hazard-wash); color: var(--hazard-deep); }
+
+.ch__hint { font-size: var(--fs-sm); color: var(--ink-2); margin: var(--sp-3) 0; }
+.ch__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.ch__cap { font-size: var(--fs-xs); color: var(--ink-3); margin: 0 0 var(--sp-2); }
+
+.ch__boxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-2); }
+.ch-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: var(--sp-3);
+  border: 1px solid var(--carton-deep);
+  background: var(--carton);
+  color: #241C10;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.ch-box__code { font-size: var(--fs-xs); opacity: .75; }
+.ch-box__item { font-size: var(--fs-sm); font-weight: 600; }
+.ch-box__qty { font-size: var(--fs-xs); opacity: .75; }
+.ch-box.is-picked { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ch-box.is-matched { opacity: .45; cursor: default; }
+.ch-box.is-flagged { opacity: .55; border-color: var(--hazard-deep); box-shadow: inset 0 0 0 2px var(--hazard); cursor: default; }
+
+.ch__paper { border: 1px solid var(--line); background: var(--panel); }
+.ch-line {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) 2.6rem;
+  gap: var(--sp-2);
+  width: 100%;
+  text-align: left;
+  padding: .55rem var(--sp-3);
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.ch-line:last-child { border-bottom: 0; }
+.ch-line:hover:not([disabled]) { background: var(--panel-2); }
+.ch-line[disabled] { cursor: default; }
+.ch-line.is-taken { opacity: .4; text-decoration: line-through; }
+
+.ch--result h3 { margin-bottom: var(--sp-3); }
+.ch__verdict { font-size: var(--fs-body); font-weight: 600; margin-bottom: var(--sp-2); }
+.ch__verdict.is-bad { color: var(--hazard-deep); }
+.ch__verdict.is-good { color: var(--se-green-deep); }
+.ch--result p:not(.ch__verdict) { font-size: var(--fs-sm); color: var(--ink-2); margin-bottom: var(--sp-4); }
+
+/* ---------- Results ---------- */
+
+.ba { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
+.ba__cell {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.ba__key { font-size: var(--fs-sm); color: var(--ink-2); }
+.ba__todo {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--hazard-deep);
+  background: var(--hazard-wash);
+  border: 1px dashed var(--hazard);
+  padding: .3rem .5rem;
+  align-self: flex-start;
+}
+
+/* ---------- Specifications ---------- */
+
+.specs { margin: 0; border-top: 1px solid var(--line); }
+.specs__row {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: var(--sp-4);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.specs dt { font-weight: 600; }
+.specs dd { margin: 0; color: var(--ink-2); font-size: var(--fs-sm); }
+
+/* ---------- Video slot ---------- */
+
+.video-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  aspect-ratio: 16 / 9;
+  max-width: 760px;
+  border: 1px dashed var(--line);
+  background: var(--panel-2);
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+}
+.video-slot svg { width: 26px; height: 26px; }
+
+/* ---------- Team ---------- */
+
+.team { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-3); }
+.team__card {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line-soft);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.team__slot { font-weight: 600; font-size: var(--fs-sm); }
+.team__role, .team__link { font-size: var(--fs-xs); color: var(--ink-3); }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .scanbox { grid-template-columns: minmax(0, 1fr); }
+  .pains, .ba { grid-template-columns: minmax(0, 1fr); }
+  .ch__grid { grid-template-columns: minmax(0, 1fr); }
+  .specs__row { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); }
+  .team { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .ch__boxes { grid-template-columns: minmax(0, 1fr); }
+  .team { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- Legal pages ---------- */
+
+.legal { max-width: 68ch; }
+.legal h1 { font-size: var(--fs-h2); margin-bottom: var(--sp-3); }
+.legal h2 { font-size: var(--fs-h3); margin: var(--sp-5) 0 var(--sp-2); }
+.legal p { color: var(--ink-2); font-size: var(--fs-sm); }

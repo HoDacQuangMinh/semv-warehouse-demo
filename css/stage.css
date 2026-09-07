@@ -1,0 +1,161 @@
+/* The hero as a booth stage. Everything here exists to be legible from three
+   metres away in a busy hall, not to be read closely. */
+
+.hero {
+  position: relative;
+  padding-block: 0;
+  overflow: hidden;
+}
+
+.hero__inner { padding-block: var(--sp-7); }
+
+/* The scan card keeps a heading of its own, one step down from the hall. */
+.hero__h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -.03em;
+  margin-bottom: var(--sp-4);
+}
+
+/* Headline at booth scale. One line, very large, nothing accented. */
+.hero__text h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 1.4rem + 6vw, 5.4rem);
+  line-height: .96;
+  letter-spacing: -.04em;
+  max-width: 12ch;
+}
+
+.hero__text .lede { font-size: clamp(1.05rem, .98rem + .4vw, 1.3rem); }
+
+.hero__text .btn {
+  font-size: 1.05rem;
+  padding: .85rem 1.6rem;
+}
+
+/* ---------- Lower-left warehouse caption ----------
+   Keep the same corner through resizing and zoom. Container units scale the
+   type and spacing with the canvas; main.js fits unusually short viewports. */
+
+.stage-overlay {
+  --copy-gap: clamp(6px, 1.6cqh, 12px);
+  position: absolute;
+  left: var(--scene-pad);
+  bottom: max(var(--scene-pad), env(safe-area-inset-bottom));
+  width: min(calc(100% - 2 * var(--scene-pad)), clamp(260px, 35cqw, 520px));
+  min-width: 0;
+  color: var(--ink);
+  transform: scale(var(--copy-scale, 1));
+  transform-origin: bottom left;
+  isolation: isolate;
+  z-index: 2;
+  pointer-events: none;
+}
+.stage-overlay::before {
+  content: "";
+  position: absolute;
+  inset: -12% -16% calc(-1 * var(--scene-pad));
+  background: radial-gradient(ellipse at 30% 80%, var(--hall-bg) 15%, color-mix(in srgb, var(--hall-bg) 85%, transparent) 45%, transparent 75%);
+  pointer-events: none;
+  z-index: -1;
+}
+.stage-overlay h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, min(4.2cqw, 5.6cqh), 4.6rem);
+  line-height: 1;
+  letter-spacing: -.04em;
+  color: var(--ink);
+  max-width: 15ch;
+  margin-bottom: var(--copy-gap);
+}
+.stage-overlay__by {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1.35cqw, 16px);
+  letter-spacing: .02em;
+  color: var(--se-green-deep);
+  margin-bottom: var(--copy-gap);
+}
+.stage-overlay__by::after {
+  content: "";
+  display: block;
+  width: min(148px, 45%);
+  height: clamp(3px, .8cqh, 7px);
+  margin-top: var(--copy-gap);
+  background: var(--tape);
+}
+
+.stage-overlay .btn {
+  pointer-events: auto;
+  background: var(--se-green);
+  color: #0E1A11;
+  font-size: clamp(12px, 1.4cqw, 17px);
+  padding: clamp(8px, 1.6cqh, 14px) clamp(14px, 2.2cqw, 26px);
+}
+.stage-overlay .btn:hover { background: #5FE07A; }
+
+.stage-overlay__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--copy-gap);
+  flex-wrap: wrap;
+}
+.stage-overlay .progress__label {
+  margin-top: var(--copy-gap);
+  font-size: clamp(10px, 1.2cqw, 14px);
+  color: var(--ink-3);
+}
+@container (max-height: 340px) and (min-aspect-ratio: 7/5) {
+  .stage-overlay { width: calc(44% - var(--scene-pad)); }
+  .stage-overlay h1 { font-size: clamp(16px, 6cqh, 20px); max-width: 24ch; }
+  .stage-overlay__by { font-size: 11px; }
+  .stage-overlay .progress__label { font-size: 10px; }
+}
+
+/* ---------- The scan target ---------- */
+
+.scanbox { border-width: 2px; }
+
+.scanbox__stage { min-height: 260px; }
+
+.reticle {
+  position: absolute;
+  width: 46%;
+  left: 46%;
+  top: 34%;
+  fill: none;
+  stroke: var(--scan);
+  stroke-width: 3;
+  stroke-linecap: square;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn-scan {
+  font-size: 1.05rem;
+  padding: .85rem 1.6rem;
+}
+
+/* ---------- The confirmation wipe ----------
+   Green means confirmed, so it only ever fires when a station is finished. */
+
+.wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    transparent 34%,
+    color-mix(in srgb, var(--se-green) 46%, transparent) 50%,
+    transparent 66%,
+    transparent 100%
+  );
+}
+
+@media (max-width: 640px) {
+  .hero__text h1 { max-width: 14ch; }
+  .reticle { width: 52%; left: 42%; top: 32%; }
+}

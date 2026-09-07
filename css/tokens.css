@@ -1,0 +1,249 @@
+/* Design tokens.
+   Colour keeps the Schneider anchor and the spec's semantic rules. Type,
+   spacing, radius, materials and motion follow Apple's Human Interface
+   Guidelines: a real type scale, an 8pt grid, translucent materials for
+   layering, and 44px minimum hit targets.
+
+   One deliberate departure: HIG uses capsule buttons. Ours stay rectangular
+   with a soft radius, because pill buttons are banned in this project. */
+
+:root {
+  /* Brand */
+  --se-green:      #3DCD58;
+  --se-green-mid:  #2FA847;
+  --se-green-deep: #1F6F4A;
+  --se-green-wash: #E3F5E8;
+
+  /* Materials, taken from the warehouse itself */
+  --carton:      #C8A57B;
+  --carton-deep: #8A6A42;
+  --floor:       #EFEAE0;   /* kraft paper */
+  --panel:       #E3DCCB;   /* concrete */
+  --panel-2:     #FBF8F1;   /* elevated surface, still warm */
+  --ink:         #17150F;   /* label */
+  --ink-2:       #5C574F;   /* secondary label */
+  --ink-3:       #8E8880;   /* tertiary label */
+  --line:        #D4CFC6;   /* separator */
+  --line-soft:   #E4E0D8;   /* opaque separator */
+  --steel:       #33383B;
+
+  /* Semantic, information only */
+  --hazard:        #F2B705;
+  --hazard-deep:   #8A6800;
+  --hazard-wash:   #FDF3D6;
+  --verified:      var(--se-green);
+  --verified-deep: var(--se-green-deep);
+  --verified-wash: var(--se-green-wash);
+  --scan:          #0B5FFF;
+  --scan-wash:     #E4EDFF;
+  --machine:       #E9A93C;
+  --machine-deep:  #7A5410;
+
+  /* Station identity. Deliberately OUTSIDE the semantic trio: green, hazard
+     yellow and scan blue keep their meanings, so identity has to come from
+     somewhere else. These three are earthy and industrial and cannot be
+     mistaken for a status. */
+  --petrol:      #0E4B4F;   /* the dock */
+  --petrol-soft: #D3E2E1;
+  --oxide:       #A8451F;   /* the build area */
+  --oxide-soft:  #F3DFD6;
+  --moss:        #4A5A2B;   /* the racks */
+  --moss-soft:   #E2E6D2;
+
+  /* Vehicles. Silver cab, weathered steel container, dark glass and rubber. */
+  --truck-cab:   #D8D3C7;
+  --truck-glass: #6F8E99;
+  --cont-body:   #3E5F6B;
+  --tyre:        #1B1E20;
+  --op-trouser:  #2A3138;
+  --op-skin:     #C89A73;
+  --op-helmet:   #F4F1E8;
+  --hair:        #241C15;
+  --crew-a:      #2A3138;
+  --crew-b:      #4A3A52;
+  --crew-c:      #23404A;
+  --crew-d:      #4A3226;
+  --crew-e:      #2E3A2C;
+
+  /* The hall itself. Daylight concrete, not a black void. */
+  --hall-bg:     #DCD5C6;
+  --hall-top:    #E6E0D2;
+  --hall-left:   #C2BAA6;
+  --hall-right:  #D2CABA;
+  --hall-grid:   #C7BFAB;
+  --hall-steel:  #4A5558;
+  --hall-steel-2:#333C3F;
+  --hall-steel-3:#3F4A4D;
+  --hall-lamp:   #F6F2E6;
+  --hall-haze:   rgba(14, 75, 79, .10);
+  --wall:        #C3BCAB;
+  --wall-rib:    #B0A895;
+  --column:      #9AA0A2;
+  --paint-lane:  #D9A812;
+  --paint-walk:  #CFC7B4;
+  --pool:        rgba(255, 250, 226, .55);
+
+  /* Surface texture, built from gradients so nothing has to be downloaded. */
+  --grain: repeating-linear-gradient(
+             45deg,
+             rgba(28, 26, 23, .018) 0 2px,
+             transparent 2px 4px);
+  --tape: repeating-linear-gradient(
+            -45deg,
+            var(--machine) 0 8px,
+            var(--ink) 8px 16px);
+
+  /* Terminal screens */
+  --screen-bg:   #1A1E20;
+  --screen-ink:  #F2F0EC;
+  --screen-dim:  #948E86;
+  --screen-line: #33393C;
+
+  /* Radius. Soft, never a capsule. */
+  --radius:     8px;   /* controls */
+  --radius-lg:  14px;  /* cards and sheets */
+  --radius-sm:  6px;
+
+  /* Materials. Layering by translucency rather than heavy borders. */
+  --material-thick: color-mix(in srgb, var(--floor) 82%, transparent);
+  --material-thin:  color-mix(in srgb, var(--panel-2) 72%, transparent);
+  --blur: saturate(180%) blur(20px);
+
+  /* Elevation. Two soft, wide shadows rather than one hard one. */
+  --shadow-flat: 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent);
+  --shadow-lift: 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent),
+                 0 1px 2px rgba(28, 26, 23, .06),
+                 0 12px 28px -8px rgba(28, 26, 23, .14);
+
+  /* Type. The HIG scale, in rem. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "IBM Plex Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+
+  --fs-hero: clamp(2.125rem, 1.3rem + 3.4vw, 3rem);   /* large title */
+  --fs-h2:   clamp(1.375rem, 1.2rem + .7vw, 1.75rem); /* title 2 */
+  --fs-h3:   1.25rem;                                  /* title 3 */
+  --fs-body: 1.0625rem;                                /* body, 17px */
+  --fs-sm:   .9375rem;                                 /* subhead, 15px */
+  --fs-xs:   .8125rem;                                 /* footnote, 13px */
+
+  --lh-body: 1.47;
+  --lh-tight: 1.12;
+  --tracking-tight: -.022em;   /* HIG tightens as size grows */
+  --weight-emphasis: 590;
+
+  /* 8pt grid */
+  --sp-1: .25rem;   /*  4 */
+  --sp-2: .5rem;    /*  8 */
+  --sp-3: .75rem;   /* 12 */
+  --sp-4: 1rem;     /* 16 */
+  --sp-5: 1.5rem;   /* 24 */
+  --sp-6: 2rem;     /* 32 */
+  --sp-7: 3rem;     /* 48 */
+  --sp-8: 4rem;     /* 64 */
+
+  --hit: 44px;      /* minimum touch target */
+  --wrap: 1120px;
+
+  /* Layout constants shared between the header and the full screen views.
+     --topbar-base is the height the header reserves; --topbar-h is what the
+     views offset by, and main.js overwrites it with the height the header
+     actually rendered. They are deliberately two tokens rather than one: the
+     header must not size itself from a value it also feeds, or measuring adds
+     the border back each pass and the bar grows without end. --hall-ar keeps
+     the warehouse drawing at its SVG viewBox aspect ratio, 988/662, as its
+     canvas fits the screen around the lower-left caption. */
+  --topbar-base: 62px;   /* what the header reserves for itself */
+  --topbar-h:    62px;   /* what the views offset by; main.js measures it */
+  --hall-ar: 1.4924;
+
+  /* Motion. A settle rather than a slide. */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --ease-out: cubic-bezier(.25, .1, .25, 1);
+  --dur-fast: 160ms;
+  --dur: 300ms;
+  --dur-slow: 520ms;
+  --dur-forklift: 2900ms;
+}
+
+[data-theme="dark"] {
+  --se-green:      #4FD96A;
+  --se-green-mid:  #3DCD58;
+  --se-green-deep: #85E6A0;
+  --se-green-wash: #14301F;
+
+  --carton:      #B99268;
+  --carton-deep: #6E5334;
+  --floor:       #000000;   /* HIG dark base is true black */
+  --panel:       #1C1C1E;
+  --panel-2:     #2C2C2E;
+  --ink:         #F2F0EC;
+  --ink-2:       #AEA9A1;
+  --ink-3:       #8A857D;
+  --line:        #38383A;
+  --line-soft:   #2A2A2C;
+  --steel:       #C6CBCF;
+
+  --hazard:        #F7C63C;
+  --hazard-deep:   #F7D571;
+  --hazard-wash:   #33280A;
+  --verified-wash: #14301F;
+  --scan:          #5B8DFF;
+  --scan-wash:     #16224A;
+  --machine:       #E9A93C;
+  --machine-deep:  #C98E2B;
+
+  --petrol:      #58B8B4;
+  --petrol-soft: #0E2E30;
+  --oxide:       #E0794F;
+  --oxide-soft:  #35190F;
+  --moss:        #9DB06A;
+  --moss-soft:   #1E2413;
+
+  --hall-bg:     #191712;
+  --hall-top:    #23201A;
+  --hall-left:   #14120E;
+  --hall-right:  #1B1813;
+  --hall-grid:   #2E2A22;
+  --hall-steel:  #4A5558;
+  --hall-steel-2:#242C2F;
+  --hall-steel-3:#333C3F;
+  --hall-lamp:   #3A362B;
+  --hall-haze:   rgba(88, 184, 180, .12);
+  --wall:        #262B2E;
+  --wall-rib:    #1B2023;
+  --column:      #33393C;
+  --paint-lane:  #E5C24A;
+  --paint-walk:  #2C3A3C;
+  --pool:        rgba(255, 244, 214, .07);
+  --truck-cab:   #C9C3B5;
+  --truck-glass: #55707B;
+  --cont-body:   #35525C;
+  --tyre:        #121415;
+  --op-trouser:  #222930;
+  --op-skin:     #B98B66;
+  --op-helmet:   #E8E4DA;
+  --hair:        #171210;
+  --crew-a:      #222930;
+  --crew-b:      #3C2F43;
+  --crew-c:      #1C343C;
+  --crew-d:      #3C281E;
+  --crew-e:      #253026;
+
+  --grain: repeating-linear-gradient(
+             45deg,
+             rgba(255, 255, 255, .015) 0 2px,
+             transparent 2px 4px);
+
+  --screen-bg:   #0E1113;
+  --screen-ink:  #F2F0EC;
+  --screen-dim:  #8A857D;
+  --screen-line: #262C2F;
+
+  --material-thick: color-mix(in srgb, var(--panel) 78%, transparent);
+  --material-thin:  color-mix(in srgb, var(--panel-2) 68%, transparent);
+
+  --shadow-flat: 0 0 0 1px color-mix(in srgb, #FFFFFF 8%, transparent);
+  --shadow-lift: 0 0 0 1px color-mix(in srgb, #FFFFFF 8%, transparent),
+                 0 12px 28px -8px rgba(0, 0, 0, .6);
+}

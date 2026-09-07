@@ -1,0 +1,497 @@
+/* Warehouse activity and interaction animations. */
+
+/* Truck visibility supplies the shared clock. vehicles.js uses that clock to
+   turn the actual geometry, reverse to the dock, and leave cab first. */
+/* ---------- The dock cycle ----------
+   One 24s clock for the receiving truck and gate. The logistics controller
+   waits for this dock to open before collecting its pallet. */
+
+.twin__hall { --dock-cycle: 24s; }
+
+@keyframes dock-truck {
+  0%   { opacity: 0; }
+  4%   { opacity: 1; }
+  14%, 68% { opacity: 1; }
+  84%, 100% { opacity: 0; }
+}
+.iso-dock-truck {
+  transform-box: view-box;
+  animation: dock-truck var(--dock-cycle) linear infinite;
+}
+
+/* The truck docks at 14%; the gate is fully open before unloading starts.
+   Keep it open during unloading, then close during departure. */
+@keyframes dock-gate {
+  0%, 14% { transform: translateY(0); }
+  20%, 68% { transform: translateY(-54px); }
+  78%, 100% { transform: translateY(0); }
+}
+.iso-dock-gate {
+  transform-box: view-box;
+  animation: dock-gate var(--dock-cycle) linear infinite;
+}
+
+/* The scanning arm, and the blue that only ever means a scan. */
+@keyframes op-scan {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2.2px); }
+}
+@keyframes op-beam {
+  0%, 62%  { opacity: 0; }
+  68%      { opacity: .9; }
+  74%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+.iso-scanner .op-arm {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: op-scan 1900ms ease-in-out infinite;
+}
+.op-beam {
+  stroke: var(--scan);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0;
+  animation: op-beam 1900ms linear infinite;
+}
+
+/* The forklift bobs over the floor joints as it runs. */
+.iso-shuttle .op-arm { animation: none; }
+
+/* Wheels turn while a vehicle is moving. */
+@keyframes wheel-roll {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.iso-wheel-spin { transform-box: fill-box; transform-origin: center; }
+.iso-shipping .iso-wheel-spin,
+.iso-dock-truck .iso-wheel-spin,
+.iso-shuttle .iso-wheel-spin { animation: wheel-roll 900ms linear infinite; }
+
+/* The team talking. Each bubble opens, its dots run, then it closes; the
+   delays are staggered across the five so it reads as a conversation rather
+   than five people speaking at once. */
+@keyframes chat-pop {
+  0%   { opacity: 0; transform: scale(.6); }
+  3%   { opacity: 1; transform: scale(1); }
+  17%  { opacity: 1; transform: scale(1); }
+  21%  { opacity: 0; transform: scale(.85); }
+  100% { opacity: 0; transform: scale(.85); }
+}
+@keyframes chat-dot {
+  0%, 100% { opacity: .25; }
+  50%      { opacity: 1; }
+}
+.iso-chat { animation: chat-pop 17s ease-in-out infinite; }
+.iso-chat-dot { animation: chat-dot 1200ms ease-in-out infinite; }
+.iso-chat-dot:nth-of-type(2) { animation-delay: 180ms; }
+.iso-chat-dot:nth-of-type(3) { animation-delay: 360ms; }
+
+/* A short bob so the walk does not read as a figure being slid along. */
+@keyframes op-walk {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.1px); }
+}
+.op-walk {
+  transform-box: view-box;
+  animation: op-walk var(--step-duration, 620ms) ease-in-out infinite;
+}
+
+/* Opposing steps and arm swings make each walk legible at the hall's scale. */
+@keyframes op-step {
+  0%, 100% { transform: translate(-1.4px, -.7px) rotate(-12deg); }
+  50% { transform: translate(1.4px, .7px) rotate(12deg); }
+}
+@keyframes op-arm-swing {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-14deg); }
+}
+.op-leg, .op-arm-back, .op-arm {
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+.op-walk .op-leg { animation: op-step var(--step-duration, 620ms) ease-in-out infinite; }
+.op-walk .op-leg--front { animation-delay: calc(var(--step-duration, 620ms) / -2); }
+.op-walk .op-arm-back,
+.iso-roamer .op-arm,
+.iso-operator .op-arm { animation: op-arm-swing var(--step-duration, 620ms) ease-in-out infinite; }
+.op-walk .op-arm-back { animation-delay: calc(var(--step-duration, 620ms) / -2); }
+#returns-op { --step-duration: 720ms; }
+#roamer { --step-duration: 680ms; }
+#operator { --step-duration: 580ms; }
+
+/* The activity controller pauses each stride while the operator yields. */
+.iso-figure:not(.is-walking) .op-walk,
+.iso-figure:not(.is-walking) .op-leg,
+.iso-figure:not(.is-walking) .op-arm,
+.iso-figure:not(.is-walking) .op-arm-back { animation-play-state: paused; }
+.iso-yield-light { fill: var(--machine); stroke: var(--ink); stroke-width: 1; visibility: hidden; }
+.iso-shuttle.is-yielding .iso-yield-light { visibility: visible; }
+
+/* The stationary crew shift their weight and gesture when their bubble opens. */
+@keyframes crew-idle {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-1px) rotate(1deg); }
+}
+@keyframes crew-gesture {
+  0%, 21%, 100% { transform: rotate(0); }
+  4%, 12% { transform: rotate(-48deg); }
+  8%, 16% { transform: rotate(-28deg); }
+}
+.iso-member-body {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: crew-idle 5.5s ease-in-out var(--gesture-delay, 0s) infinite;
+}
+.iso-member-arm {
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: crew-gesture 17s ease-in-out var(--gesture-delay, 0s) infinite;
+}
+.iso-member.is-walking .iso-member-body { animation: op-walk 640ms ease-in-out infinite; }
+.iso-member.is-walking .op-leg { animation: op-step 640ms ease-in-out infinite; }
+.iso-member.is-walking .op-leg--front { animation-delay: -320ms; }
+.iso-member.is-walking .iso-member-arm { animation: op-arm-swing 640ms ease-in-out infinite; }
+@keyframes crew-wave {
+  0%, 100% { transform: rotate(0); }
+  15%, 45%, 75% { transform: rotate(-115deg); }
+  30%, 60%, 90% { transform: rotate(-65deg); }
+}
+.iso-member.is-greeting .iso-member-body { animation: none; }
+.iso-member.is-greeting .iso-member-arm { animation: crew-wave 1400ms ease-in-out both; }
+
+/* CSS and SVG path animations both pause offscreen and follow live changes
+   to the system's reduced-motion preference. SVG timing is handled in twin.js. */
+#twin-stage.is-paused .twin__svg * { animation-play-state: paused !important; }
+#twin-stage.is-still .twin__svg * { animation: none !important; }
+#twin-stage.is-still .iso-shipping,
+#twin-stage.is-still .iso-dock-truck { opacity: 1; transform: none; }
+#twin-stage.is-still .iso-chat { opacity: 1; }
+#twin-stage.is-still .iso-dock-gate { transform: translateY(-54px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .op-leg, .op-arm-back, .iso-member-body, .iso-member-arm,
+  #returns-op, #roamer, #operator { animation: none !important; }
+}
+
+@keyframes ship-cycle {
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  20%, 60% { opacity: 1; }
+  80%, 100% { opacity: 0; }
+}
+.iso-shipping {
+  transform-box: view-box;
+  animation: ship-cycle 48s linear infinite;
+}
+
+.iso-truck { transform-box: view-box; }
+
+/* ---------- View transition ----------
+   The curtain covers, the view swaps behind it, the curtain leaves. The truck
+   runs ahead of the curtain the whole way. */
+
+@keyframes curtain-sweep {
+  0%   { transform: translateX(-102%); }
+  46%  { transform: translateX(0); }
+  54%  { transform: translateX(0); }
+  100% { transform: translateX(102%); }
+}
+@keyframes truck-sweep {
+  0%   { transform: translateX(-40vw); }
+  100% { transform: translateX(110vw); }
+}
+
+.transition.is-running .transition__curtain { animation: curtain-sweep 1700ms var(--ease-out) both; }
+.transition.is-running .transition__truck   { animation: truck-sweep 1700ms linear both; }
+.transition.is-running .fk-shell  { animation: bob 620ms ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.transition.is-running .fk-wheel  { animation: roll 620ms linear infinite; transform-box: fill-box; transform-origin: center; }
+.transition.is-running .fk-beacon { animation: beacon 520ms steps(1, end) infinite; }
+
+/* ---------- Booth stage motion ----------
+   The floor strip and the reticle run continuously. They are the attract loop
+   for a crowded hall, and they are the only motion that never stops. */
+
+@keyframes route-flow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -52; }
+}
+.iso-route-flow { animation: route-flow 1.9s linear infinite; }
+
+@keyframes node-ping {
+  0%   { opacity: .75; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.9); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+.iso-node-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: node-ping 2.8s var(--ease) infinite;
+}
+.iso-node--2 .iso-node-ping { animation-delay: .5s; }
+.iso-node--3 .iso-node-ping { animation-delay: 1s; }
+
+@keyframes reticle-breathe {
+  0%, 100% { opacity: .3; transform: scale(1); }
+  50%      { opacity: .95; transform: scale(1.045); }
+}
+.reticle { transform-origin: center; }
+.reticle.is-live { animation: reticle-breathe 2.1s var(--ease) infinite; }
+
+@keyframes wipe-pass {
+  0%   { opacity: 0; transform: translateX(-100%); }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translateX(100%); }
+}
+.wipe.is-on { animation: wipe-pass 900ms var(--ease) 1; }
+
+/* ---------- Opening sequence ----------
+   The one piece of motion on this page that nobody asked for by clicking.
+   It runs once on load and never repeats. */
+
+@keyframes hero-settle {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes label-wake {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+body.is-intro .stage-overlay h1 { animation: hero-settle 620ms var(--ease) 140ms both; }
+body.is-intro .stage-overlay .btn { animation: hero-settle 620ms var(--ease) 320ms both; }
+body.is-intro .scanbox { animation: hero-settle 520ms var(--ease) both; }
+body.is-intro .hero__h2 { animation: hero-settle 520ms var(--ease) 120ms both; }
+body.is-intro .hero__text .lede { animation: hero-settle 520ms var(--ease) 200ms both; }
+body.is-intro .hero__text .fineprint { animation: hero-settle 520ms var(--ease) 260ms both; }
+body.is-intro .hero__text .btn { animation: hero-settle 520ms var(--ease) 320ms both; }
+body.is-intro .cn-label,
+body.is-intro .cn-bars,
+body.is-intro .cn-matrix,
+body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
+
+/* ---------- Terminal open ---------- */
+
+@keyframes terminal-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.terminal.is-open { animation: terminal-in var(--dur) var(--ease) both; }
+
+/* ---------- Station completion stamp ---------- */
+
+@keyframes stamp-in {
+  0%   { opacity: 0; transform: scale(1.5) rotate(-8deg); }
+  60%  { opacity: 1; transform: scale(.94) rotate(-3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-3deg); }
+}
+.stamp { transform: rotate(-3deg); }
+.stamp.is-in { animation: stamp-in 420ms var(--ease) both; }
+
+/* ---------- The scanning moment ---------- */
+
+@keyframes beam {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateY(1200%); opacity: 0; }
+}
+.scanbox__beam.is-on { animation: beam 700ms var(--ease) 1; }
+
+@keyframes beam-screen {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateY(2400%); opacity: 0; }
+}
+.scanner.is-scanning::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: var(--scan);
+  box-shadow: 0 0 14px 3px color-mix(in srgb, var(--scan) 55%, transparent);
+  animation: beam-screen 620ms var(--ease) 1;
+}
+
+@keyframes code-in {
+  from { opacity: 0; letter-spacing: .3em; }
+  to   { opacity: 1; letter-spacing: .06em; }
+}
+.scanner__code.is-in { animation: code-in 340ms var(--ease) both; }
+
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+.scanbox__row { animation: row-in 240ms var(--ease) both; }
+
+/* ---------- Scanned line arrival ---------- */
+
+@keyframes line-in {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: none; }
+}
+.line.is-in { animation: line-in 260ms var(--ease) both; }
+
+/* ---------- Carton drop onto the pallet ---------- */
+
+@keyframes carton-drop {
+  0%   { opacity: 0; transform: translateY(-34px) scale(1.06); }
+  70%  { opacity: 1; transform: translateY(2px) scale(1); }
+  100% { opacity: 1; transform: none; }
+}
+.slot.is-filled.is-in { animation: carton-drop 300ms var(--ease) both; }
+
+@keyframes elev-rise {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+.elev-box.is-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: elev-rise 300ms var(--ease) both;
+}
+
+/* ---------- Pallet sliding into its bin ---------- */
+
+@keyframes bin-load {
+  0%   { opacity: 0; transform: translateX(-140%); }
+  100% { opacity: 1; transform: none; }
+}
+.bin__pallet.is-in { animation: bin-load 460ms var(--ease) both; }
+
+/* ---------- Forklift crossing the screen ---------- */
+
+@keyframes drive {
+  from { transform: translateX(-300px); }
+  to   { transform: translateX(calc(100vw + 80px)); }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-2px) rotate(-.35deg); }
+  75%      { transform: translateY(1px) rotate(.35deg); }
+}
+@keyframes roll {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes lift {
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(-26px); }
+  70%  { transform: translateY(-26px); }
+  100% { transform: translateY(0); }
+}
+@keyframes beacon {
+  0%, 100% { opacity: .25; }
+  50%      { opacity: 1; }
+}
+
+.forklift.is-driving { animation: drive var(--dur-forklift) linear both; }
+.forklift.is-driving .fk-shell { animation: bob 620ms ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.forklift.is-driving .fk-wheel { animation: roll 780ms linear infinite; transform-box: fill-box; transform-origin: center; }
+.forklift.is-driving .fk-carriage { animation: lift var(--dur-forklift) var(--ease) both; }
+.forklift.is-driving .fk-beacon { animation: beacon 520ms steps(1, end) infinite; }
+
+/* ---------- Finale ---------- */
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(16px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+.overlay.is-open { animation: overlay-in 200ms var(--ease) both; }
+.overlay.is-open .overlay__panel { animation: panel-in 340ms var(--ease) 60ms both; }
+
+@keyframes route-draw {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+.overlay.is-open .finale__line-fill {
+  stroke-dasharray: 300;
+  animation: route-draw 1200ms var(--ease) 220ms both;
+}
+
+@keyframes tick-draw {
+  from { stroke-dashoffset: 22; }
+  to   { stroke-dashoffset: 0; }
+}
+.overlay.is-open .finale__tick {
+  stroke-dasharray: 22;
+  animation: tick-draw 260ms var(--ease) both;
+}
+.overlay.is-open [data-node="1"] .finale__tick { animation-delay: 420ms; }
+.overlay.is-open [data-node="2"] .finale__tick { animation-delay: 800ms; }
+.overlay.is-open [data-node="3"] .finale__tick { animation-delay: 1180ms; }
+
+@keyframes pallet-travel {
+  0%   { transform: translate(30px, 90px); }
+  100% { transform: translate(330px, 90px); }
+}
+.finale__pallet { transform: translate(30px, 90px); }
+.overlay.is-open .finale__pallet { animation: pallet-travel 1200ms var(--ease) 220ms both; }
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .transition.is-running .transition__curtain,
+  .transition.is-running .transition__truck,
+  .transition.is-running .fk-shell,
+  .transition.is-running .fk-wheel,
+  .transition.is-running .fk-beacon,
+  .iso-shipping,
+  .op-walk,
+  .iso-wheel-spin,
+  .iso-chat,
+  .iso-chat-dot,
+  .iso-dock-truck,
+  .iso-dock-gate,
+  .op-arm,
+  .op-beam,
+  .iso-route-flow,
+  .iso-node-ping,
+  .reticle.is-live,
+  .wipe.is-on,
+  body.is-intro .stage-overlay h1,
+  body.is-intro .stage-overlay .btn,
+  body.is-intro .scanbox,
+  body.is-intro .hero__h2,
+  body.is-intro .hero__text .lede,
+  body.is-intro .hero__text .fineprint,
+  body.is-intro .hero__text .btn,
+  body.is-intro .cn-label,
+  body.is-intro .cn-bars,
+  body.is-intro .cn-matrix,
+  body.is-intro .cn-code,
+  .terminal.is-open,
+  .stamp.is-in,
+  .scanbox__beam.is-on,
+  .scanbox__row,
+  .scanner__code.is-in,
+  .line.is-in,
+  .slot.is-filled.is-in,
+  .elev-box.is-in,
+  .bin__pallet.is-in,
+  .overlay.is-open,
+  .overlay.is-open .overlay__panel,
+  .overlay.is-open .finale__line-fill,
+  .overlay.is-open .finale__tick,
+  .overlay.is-open .finale__pallet,
+  .forklift.is-driving,
+  .forklift.is-driving .fk-shell,
+  .forklift.is-driving .fk-wheel,
+  .forklift.is-driving .fk-carriage,
+  .forklift.is-driving .fk-beacon {
+    animation: none !important;
+  }
+
+  .scanner.is-scanning::after { display: none; }
+  .progress__seg::after { transition: none; }
+}
