@@ -66,22 +66,22 @@
   --crew-e:      #2E3A2C;
 
   /* The hall itself. Daylight concrete, not a black void. */
-  --hall-bg:     #DCD5C6;
-  --hall-top:    #E6E0D2;
-  --hall-left:   #C2BAA6;
-  --hall-right:  #D2CABA;
-  --hall-grid:   #C7BFAB;
+  --hall-bg:     #E3E9EC;
+  --hall-top:    #CAD2D3;
+  --hall-left:   #7F9198;
+  --hall-right:  #9DADB2;
+  --hall-grid:   #ADBCC1;
   --hall-steel:  #4A5558;
   --hall-steel-2:#333C3F;
   --hall-steel-3:#3F4A4D;
   --hall-lamp:   #F6F2E6;
-  --hall-haze:   rgba(14, 75, 79, .10);
-  --wall:        #C3BCAB;
-  --wall-rib:    #B0A895;
-  --column:      #9AA0A2;
+  --hall-haze:   rgba(248, 253, 255, .9);
+  --wall:        #B4C4CB;
+  --wall-rib:    #8CA1AD;
+  --column:      #647C88;
   --paint-lane:  #D9A812;
-  --paint-walk:  #CFC7B4;
-  --pool:        rgba(255, 250, 226, .55);
+  --paint-walk:  #ADC7BE;
+  --pool:        rgba(247, 253, 255, .36);
 
   /* Surface texture, built from gradients so nothing has to be downloaded. */
   --grain: repeating-linear-gradient(
@@ -200,22 +200,22 @@
   --moss:        #9DB06A;
   --moss-soft:   #1E2413;
 
-  --hall-bg:     #191712;
-  --hall-top:    #23201A;
-  --hall-left:   #14120E;
-  --hall-right:  #1B1813;
-  --hall-grid:   #2E2A22;
+  --hall-bg:     #101B24;
+  --hall-top:    #344650;
+  --hall-left:   #172730;
+  --hall-right:  #243943;
+  --hall-grid:   #425B65;
   --hall-steel:  #4A5558;
   --hall-steel-2:#242C2F;
   --hall-steel-3:#333C3F;
-  --hall-lamp:   #3A362B;
-  --hall-haze:   rgba(88, 184, 180, .12);
-  --wall:        #262B2E;
-  --wall-rib:    #1B2023;
-  --column:      #33393C;
+  --hall-lamp:   #E7F4FF;
+  --hall-haze:   rgba(117, 179, 207, .15);
+  --wall:        #304652;
+  --wall-rib:    #223440;
+  --column:      #607D8C;
   --paint-lane:  #E5C24A;
   --paint-walk:  #2C3A3C;
-  --pool:        rgba(255, 244, 214, .07);
+  --pool:        rgba(201, 230, 250, .16);
   --truck-cab:   #C9C3B5;
   --truck-glass: #55707B;
   --cont-body:   #35525C;

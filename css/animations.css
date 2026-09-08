@@ -25,34 +25,6 @@
   transform-box: view-box;
 }
 
-/* The scanning arm, and the blue that only ever means a scan. */
-@keyframes op-scan {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-2.2px); }
-}
-@keyframes op-beam {
-  0%, 62%  { opacity: 0; }
-  68%      { opacity: .9; }
-  74%      { opacity: 0; }
-  100%     { opacity: 0; }
-}
-.iso-scanner .op-arm {
-  transform-box: fill-box;
-  transform-origin: top center;
-  animation: op-scan 1900ms ease-in-out infinite;
-}
-.op-beam {
-  stroke: var(--scan);
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  fill: none;
-  opacity: 0;
-  animation: op-beam 1900ms linear infinite;
-}
-
-/* The forklift bobs over the floor joints as it runs. */
-.iso-shuttle .op-arm { animation: none; }
-
 /* Wheels turn while a vehicle is moving. */
 @keyframes wheel-roll {
   from { transform: rotate(0deg); }
@@ -82,84 +54,12 @@
 .iso-chat-dot:nth-of-type(2) { animation-delay: 180ms; }
 .iso-chat-dot:nth-of-type(3) { animation-delay: 360ms; }
 
-/* A short bob so the walk does not read as a figure being slid along. */
-@keyframes op-walk {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-1.1px); }
-}
-.op-walk {
-  transform-box: view-box;
-  animation: op-walk var(--step-duration, 620ms) ease-in-out infinite;
-}
-
-/* Opposing steps and arm swings make each walk legible at the hall's scale. */
-@keyframes op-step {
-  0%, 100% { transform: translate(-1.4px, -.7px) rotate(-12deg); }
-  50% { transform: translate(1.4px, .7px) rotate(12deg); }
-}
-@keyframes op-arm-swing {
-  0%, 100% { transform: rotate(14deg); }
-  50% { transform: rotate(-14deg); }
-}
-.op-leg, .op-arm-back, .op-arm {
-  transform-box: fill-box;
-  transform-origin: top center;
-}
-.op-walk .op-leg { animation: op-step var(--step-duration, 620ms) ease-in-out infinite; }
-.op-walk .op-leg--front { animation-delay: calc(var(--step-duration, 620ms) / -2); }
-.op-walk .op-arm-back,
-.iso-roamer .op-arm,
-.iso-operator .op-arm { animation: op-arm-swing var(--step-duration, 620ms) ease-in-out infinite; }
-.op-walk .op-arm-back { animation-delay: calc(var(--step-duration, 620ms) / -2); }
-#returns-op { --step-duration: 720ms; }
-#roamer { --step-duration: 680ms; }
-#operator { --step-duration: 580ms; }
-
-/* The activity controller pauses each stride while the operator yields. */
-.iso-figure:not(.is-walking) .op-walk,
-.iso-figure:not(.is-walking) .op-leg,
-.iso-figure:not(.is-walking) .op-arm,
-.iso-figure:not(.is-walking) .op-arm-back { animation-play-state: paused; }
+/* Operator joints and footfalls use the shared warehouse clock in operators.js. */
 .iso-yield-light { fill: var(--machine); stroke: var(--ink); stroke-width: 1; visibility: hidden; }
 .iso-shuttle.is-yielding .iso-yield-light { visibility: visible; }
 .iso-stretch-film polygon { fill: #e4f2ee; fill-opacity: .14; stroke: #e4f2ee; stroke-opacity: .35; stroke-width: .55; }
 .iso-stretch-film path { fill: none; stroke: #e4f2ee; stroke-opacity: .65; stroke-width: .65; }
 .iso-stretch-web { fill: #e4f2ee; fill-opacity: .28; stroke: #e4f2ee; stroke-opacity: .55; stroke-width: .6; }
-.iso-wrapping-operator.is-wrapping .op-arm { animation: op-scan 1500ms ease-in-out infinite; }
-.iso-wrapping-operator.is-wrapping:not(.is-walking) .op-arm { animation-play-state: running; }
-
-/* The stationary crew shift their weight and gesture when their bubble opens. */
-@keyframes crew-idle {
-  0%, 100% { transform: translateY(0) rotate(-1deg); }
-  50% { transform: translateY(-1px) rotate(1deg); }
-}
-@keyframes crew-gesture {
-  0%, 21%, 100% { transform: rotate(0); }
-  4%, 12% { transform: rotate(-48deg); }
-  8%, 16% { transform: rotate(-28deg); }
-}
-.iso-member-body {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: crew-idle 5.5s ease-in-out var(--gesture-delay, 0s) infinite;
-}
-.iso-member-arm {
-  transform-box: fill-box;
-  transform-origin: top center;
-  animation: crew-gesture 17s ease-in-out var(--gesture-delay, 0s) infinite;
-}
-.iso-member.is-walking .iso-member-body { animation: op-walk 640ms ease-in-out infinite; }
-.iso-member.is-walking .op-leg { animation: op-step 640ms ease-in-out infinite; }
-.iso-member.is-walking .op-leg--front { animation-delay: -320ms; }
-.iso-member.is-walking .iso-member-arm { animation: op-arm-swing 640ms ease-in-out infinite; }
-@keyframes crew-wave {
-  0%, 100% { transform: rotate(0); }
-  15%, 45%, 75% { transform: rotate(-115deg); }
-  30%, 60%, 90% { transform: rotate(-65deg); }
-}
-.iso-member.is-greeting .iso-member-body { animation: none; }
-.iso-member.is-greeting .iso-member-arm { animation: crew-wave 1400ms ease-in-out both; }
-
 /* CSS and SVG path animations both pause offscreen and follow live changes
    to the system's reduced-motion preference. SVG timing is handled in twin.js. */
 #twin-stage.is-paused .twin__svg * { animation-play-state: paused !important; }

@@ -5,6 +5,7 @@
     "check:dock": "node scripts/check-dock-cycle.mjs",
     "check:interactions": "node scripts/check-interactions.mjs",
     "check:crew": "node scripts/check-crew-routes.mjs",
+    "check:operators": "node scripts/check-operators.mjs",
     "check:logistics": "node scripts/check-logistics.mjs",
     "check:logistics-browser": "node scripts/check-logistics-browser.mjs",
     "check:lane-priority": "node scripts/check-lane-priority.mjs"

@@ -1,5 +1,4 @@
-/* The digital twin stage. Always dark, in both themes, because the hall is a
-   readout of the plant rather than part of the page surface. */
+/* A cutaway warehouse with concrete, directional light, and grounded objects. */
 
 .twin {
   position: relative;
@@ -14,7 +13,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(110% 85% at 46% 30%, var(--hall-haze), transparent 64%), var(--grain);
+  background: radial-gradient(100% 80% at 40% 20%, var(--hall-haze), transparent 72%);
   pointer-events: none;
 }
 
@@ -112,12 +111,12 @@
 .iso-material--film { --material: #e7e4d1; }
 .iso-material > polygon { stroke: color-mix(in srgb, var(--material) 60%, #263b47); stroke-width: .45; stroke-linejoin: round; }
 .iso-material > [class$="-top"] { fill: color-mix(in srgb, var(--material) 80%, white); }
-.iso-material > [class$="-right"] { fill: color-mix(in srgb, var(--material) 78%, black); }
-.iso-material > [class$="-left"] { fill: var(--material); }
+.iso-material > [class$="-right"] { fill: color-mix(in srgb, var(--material) 61%, #182e3a); }
+.iso-material > [class$="-left"] { fill: color-mix(in srgb, var(--material) 90%, #182e3a); }
 .iso-main-aisle { fill: color-mix(in srgb, var(--hall-top) 68%, #aeb8bd); stroke: var(--hall-grid); stroke-width: 1.2; }
-.iso-pedestrian-strip { fill: #ddab7e; opacity: .8; }
-.iso-pallet-pad { fill: color-mix(in srgb, var(--hall-top) 80%, #a9b2a1); stroke: #c3a43c; stroke-width: 2.5; }
-.iso-pallet-slats { fill: none; stroke: #647276; stroke-width: 2.4; }
+.iso-pedestrian-strip { fill: var(--paint-walk); opacity: .75; }
+.iso-pallet-pad { fill: color-mix(in srgb, var(--hall-top) 88%, #708c91); stroke: #d7ae37; stroke-width: 1.7; }
+.iso-pallet-slats { fill: none; stroke: #718487; stroke-width: 1.15; opacity: .5; }
 .iso-rack-brace { fill: none; stroke: #99652d; stroke-width: 2; stroke-linecap: round; }
 .iso-tote-opening { fill: #354955; fill-opacity: .6; }
 .iso-tote-rib { fill: none; stroke: #344b5b; stroke-opacity: .6; stroke-width: 1; }
@@ -140,7 +139,38 @@
 .iso-floor-top   { fill: var(--hall-top); }
 .iso-floor-left  { fill: var(--hall-left); }
 .iso-floor-right { fill: var(--hall-right); }
-.iso-grid        { stroke: var(--hall-grid); stroke-width: 1; fill: none; }
+.iso-grid        { stroke: var(--hall-grid); stroke-width: .65; fill: none; opacity: .65; }
+
+/* Separate floor shadows remain beneath equipment when the actors move. */
+.iso-environment, .iso-stored-stock, .iso-person-shadow, .iso-vehicle-shadow { pointer-events: none; }
+.iso-foundation-top { fill: var(--hall-top); }
+.iso-foundation-left { fill: color-mix(in srgb, var(--hall-left) 72%, #142a37); }
+.iso-foundation-right { fill: var(--hall-right); }
+.iso-foundation-shadow { fill: #142a37; opacity: .3; filter: url(#warehouse-base-soft); }
+.iso-concrete-texture { fill: url(#warehouse-concrete); }
+.iso-concrete-speckle { fill: #253d48; opacity: .22; }
+.iso-floor-light { fill: url(#warehouse-floor-light); }
+.iso-cast-shadow { fill: #102531; opacity: .21; filter: url(#warehouse-cast-soft); }
+.iso-contact-shadow { fill: #102531; opacity: .18; }
+.iso-person-shadow { fill: #102531; opacity: .32; }
+.iso-vehicle-shadow { fill: #102531; opacity: .3; }
+.iso-perimeter-line { fill: none; stroke: #e7eded; stroke-width: 1.2; opacity: .62; }
+.iso-traffic-arrow, .iso-crosswalk { fill: #eef2eb; opacity: .66; }
+.iso-area-guide { fill: none; stroke: #f4c531; stroke-width: 2.2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.iso-tyre-mark { fill: none; stroke: #162e3a; stroke-width: 3; opacity: .09; stroke-linecap: round; stroke-linejoin: round; }
+.iso-service-pipe { fill: none; stroke: #a76845; stroke-width: 2.4; }
+.iso-luminaire { fill: #f0f9ff; stroke: #9ed0e1; stroke-width: .6; }
+.iso-signboard-top, .iso-signboard-left, .iso-signboard-right { fill: #164e52; }
+.iso-building-sign { fill: #eefaf7; font-family: var(--font-mono); font-weight: 700; letter-spacing: 1px; }
+.iso-rack-id, .iso-dock-id { fill: #f4f3dd; font-family: var(--font-mono); font-weight: 700; paint-order: stroke; stroke: #243e4b; stroke-width: 2.5; stroke-linejoin: round; pointer-events: none; }
+.iso-wood-top { fill: #b4976c; }
+.iso-wood-left { fill: #725c40; }
+.iso-wood-right { fill: #8f744f; }
+.iso-carton-tape { fill: #dec28b; }
+.iso-stock-label { fill: #e9e7d9; }
+.iso-safety-top { fill: #c36253; }
+.iso-safety-left { fill: #803b35; }
+.iso-safety-right { fill: #a5483d; }
 
 /* Each zone is painted on the floor in its own station colour, the way a real
    plant paints its bays. */
@@ -368,6 +398,9 @@
 .iso-vest-top   { fill: color-mix(in srgb, var(--machine) 88%, #FFFFFF); }
 .iso-vest-left  { fill: color-mix(in srgb, var(--machine) 62%, #000000); }
 .iso-vest-right { fill: var(--machine); }
+.iso-reflective-top { fill: #f3f2cf; }
+.iso-reflective-right { fill: #e1e2bb; }
+.iso-reflective-left { fill: #c5c7a4; }
 
 .iso-trouser-top   { fill: color-mix(in srgb, var(--op-trouser) 78%, #FFFFFF); }
 .iso-trouser-left  { fill: var(--op-trouser); }

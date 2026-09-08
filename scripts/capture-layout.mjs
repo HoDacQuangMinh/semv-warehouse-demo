@@ -39,7 +39,7 @@ try {
   await page.evaluate(() => {
     document.documentElement.dataset.theme = 'light';
     const svg = document.querySelector('.twin__svg').cloneNode(true);
-    svg.setAttribute('viewBox','58 -35 988 662');
+    svg.setAttribute('viewBox','58 -45 988 690');
     document.body.replaceChildren(svg);
     document.body.classList.remove('is-intro');
     svg.style.cssText = 'width:100vw;height:100vh;max-height:none;background:var(--hall-top)';

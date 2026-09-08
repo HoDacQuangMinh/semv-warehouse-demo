@@ -12,6 +12,7 @@ body::after {
   pointer-events: none;
   z-index: 70;
 }
+body:has(#view-home.is-active)::after { background: none; }
 
 .view {
   position: fixed;   /* load bearing: gives the view its height */

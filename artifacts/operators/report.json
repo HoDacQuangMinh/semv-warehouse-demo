@@ -1,0 +1,29 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "operators": 10,
+      "turnHeadings": [
+        90,
+        0,
+        -90
+      ],
+      "greeting": true,
+      "reducedMotion": true,
+      "mobile": true
+    },
+    {
+      "file": "preview-single-file.html",
+      "operators": 10,
+      "turnHeadings": [
+        90,
+        0,
+        -90
+      ],
+      "greeting": true,
+      "reducedMotion": true,
+      "mobile": true
+    }
+  ],
+  "errors": []
+}

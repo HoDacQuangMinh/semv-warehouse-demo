@@ -39,8 +39,11 @@
 
   function create(options) {
     var opts=options || {};
-    var people=(opts.people || []).map(function (p) {
+    var people=(opts.people || []).map(function (p,index) {
+      var next=p.route && p.route[1];
       return {id:p.id,x:p.x,y:p.y,home:{x:p.x,y:p.y},route:p.route || [],target:1,speed:p.speed || 2.8,
+        heading:next ? Math.atan2(next[1]-p.y,next[0]-p.x)/RAD : p.heading || 0,
+        pace:0,travel:0,turning:false,rest:0,dwell:p.dwell===undefined ? .55+index*.06 : p.dwell,
         paused:false,walking:false,yieldTo:null,aside:null,returning:false};
     });
     var forklifts=[
@@ -82,30 +85,47 @@
       return along>-1.5 && along<8.2 && across<2.7;
     }
 
+    function walkPerson(person,target,dt,speed) {
+      var length=distance(person,target);
+      if(length<.001) {person.pace=0;return true;}
+      var heading=Math.atan2(target.y-person.y,target.x-person.x)/RAD;
+      var previous=person.heading;
+      person.heading=turn(previous,heading,dt*210);
+      person.turning=Math.abs(person.heading-previous)>.05;
+      var angle=Math.abs(((heading-person.heading+540)%360)-180);
+      // Brake before a corner and face the next aisle before setting off.
+      // Safety holds still stop immediately, keeping the interaction target fixed.
+      var desired=angle>35 ? 0 : Math.min(speed,Math.sqrt(2*4.5*length));
+      person.pace+=Math.sign(desired-person.pace)*Math.min(Math.abs(desired-person.pace),dt*5.5);
+      if(angle>35) return false;
+      var step=toward(person,target,dt*person.pace),travel=distance(person,step);
+      person.x=step.x;person.y=step.y;person.travel+=travel;person.walking=travel>.00001;
+      if(step.arrived) person.pace=0;
+      return step.arrived;
+    }
+
     function update(dt,states) {
       dt=Math.max(0,Math.min(dt,.1));
       if(states) trucks=states;
       people.forEach(function (person) {
-        person.walking=false;
-        if(person.paused) return;
+        person.walking=false;person.turning=false;
+        if(person.paused) {person.pace=0;return;}
         if(person.yieldTo) {
           var f=forklifts.find(function (f) { return f.id===person.yieldTo; });
           if(!person.returning) {
-            var result=toward(person,person.aside,dt*3.4);
-            person.x=result.x;person.y=result.y;person.walking=!result.arrived;
-            if(result.arrived && distance(person,f)>11) person.returning=true;
+            var arrived=walkPerson(person,person.aside,dt,3.4);
+            if(arrived && distance(person,f)>11) person.returning=true;
           } else {
-            var back=toward(person,person.resume,dt*2.8);
-            person.x=back.x;person.y=back.y;person.walking=!back.arrived;
-            if(back.arrived) { person.yieldTo=null;person.aside=null; }
+            if(walkPerson(person,person.resume,dt,2.8)) { person.yieldTo=null;person.aside=null; }
           }
           return;
         }
         if(person.route.length>1) {
+          if(person.rest>0) {person.rest=Math.max(0,person.rest-dt);return;}
           var target=person.route[person.target];
-          var step=toward(person,{x:target[0],y:target[1]},dt*person.speed);
-          person.x=step.x;person.y=step.y;person.walking=true;
-          if(step.arrived) person.target=(person.target+1)%person.route.length;
+          if(walkPerson(person,{x:target[0],y:target[1]},dt,person.speed)) {
+            person.target=(person.target+1)%person.route.length;person.rest=person.dwell;
+          }
         }
       });
 

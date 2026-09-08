@@ -57,7 +57,7 @@ try {
       await page.click('[data-map="in"]');
       assert.ok(Number(await page.$eval('#twin-stage',el => el.dataset.mapZoom)) > 1.15);
       await page.click('[data-map="reset"]');
-      assert.equal(await page.$eval('.twin__svg',svg => svg.getAttribute('viewBox')),'58 -35 988 662');
+      assert.equal(await page.$eval('.twin__svg',svg => svg.getAttribute('viewBox')),'58 -45 988 690');
       assert.equal(await page.$eval('[data-map="out"]',el => el.disabled),true);
       checks += 8;
       if (width === 390 && file === 'index.html') {
@@ -71,7 +71,8 @@ try {
     await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'no-preference'}]);
     await page.reload();
     await page.click('[data-member="0"] .iso-member-body');
-    assert.equal(await page.$eval('[data-member="0"] .iso-member-arm',el => getComputedStyle(el).animationName),'crew-wave');
+    await page.waitForFunction(() => document.querySelector('[data-member="0"]').dataset.operatorAction === 'greeting');
+    assert.equal(await page.$eval('[data-member="0"] .iso-member-arm',el => getComputedStyle(el).animationName),'none','The shared clock animates projected joints');
     await page.screenshot({path:resolve(output,file === 'index.html' ? 'greeting-desktop.png' : 'greeting-preview.png')});
     await page.waitForFunction(() => document.querySelector('.twin__greeting').hidden,{timeout:5000});
     assert.equal(await page.$$eval('.iso-member.is-greeting',nodes => nodes.length),0);

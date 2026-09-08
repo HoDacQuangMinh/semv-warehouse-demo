@@ -4,14 +4,14 @@
   "received": 7,
   "stored": 7,
   "delivered": 6,
-  "stoppedFrames": 86,
+  "stoppedFrames": 331,
   "yieldingOperators": [
     "bach",
-    "green",
     "center",
-    "admin"
+    "admin",
+    "green"
   ],
-  "cleared": 16,
+  "cleared": 17,
   "minimumForkliftSeparation": 22.000056818108447,
   "palletOne": [
     "truck-in",

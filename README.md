@@ -91,6 +91,14 @@ L-shaped table mark Pallet Interlocking, and green/red/yellow crates mark the
 returnables bay. Clicking the racks, GR stacks, or wrapping equipment opens the
 corresponding station. Returnables remains a separate physical area.
 
+The warehouse has a cutaway steel shell, wall lighting and service pipes,
+numbered docks, stocked rack shelves, column protectors, and marked pedestrian
+crossings. A concrete slab, surface texture, directional shadows, and moving
+vehicle/person shadows give the scene depth. Yellow floor outlines identify
+GR, PutAway, Pallet Interlocking, and Returnables. Decorative layers ignore
+pointer events, and the active forklift bays remain clear. All detail uses local
+SVG geometry and works in the standalone preview without external assets.
+
 ## What is in it
 
 Five full screen views, no scrolling between them. A forklift drives across as
@@ -122,10 +130,12 @@ the transition.
 
     js/i18n.js              every string, Vietnamese and English
     js/twin.js              the isometric hall: geometry, actors, hover cards
+    js/operators.js         articulated people, planted footsteps, work and greeting gestures
     js/camera.js            pointer, touch, and keyboard map controls
     js/vehicles.js          projected vehicles, forks, and cargo meshes
     js/logistics.js         pallet ownership, task sequences, and pedestrian yielding
     js/logistics-renderer.js  cargo depth, gate clearance, and wrapping animation
+    js/warehouse-environment.js  building shell, floor guides, stock, and shadows
     js/router.js            view switching and the forklift transition
     js/state.js             station completion, in memory only
     js/forklift.js          the transition vehicle

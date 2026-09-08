@@ -40,6 +40,7 @@
     { app: 'putaway', x: 56, y: 27, num: '02', area: [22, 2, 65, 27] },
     { app: 'interlock', x: 58, y: 43, num: '03', area: [38, 42, 42, 22] }
   ];
+  var environment=global.WarehouseEnvironment.create({point:pt,box:box});
 
 
   /* Paint on the floor: the walking lane, the aisle edges, and hazard
@@ -216,6 +217,7 @@
     out += box(x - 3.4, y + d - .2, 3.5, .5, h, kind, .7);
     out += box(x + w - .1, y + d - .2, 3.5, .5, h, kind, .7);
     if (receiving) { out += dockGate(x + 2.5, y + d); }
+    out += environment.dockDetails(x,receiving ? 'D01' : 'D02');
     return out + '</g>';
   }
 
@@ -252,6 +254,7 @@
         shelves += box(x + dx, y + d, w / 2, .7, .85, 'rack', z - .4);
       });
       shelves += '</g>';
+      shelves += environment.rackStock(x,level,z);
     });
     var braces = '';
     [x + w].forEach(function (cx) {
@@ -261,7 +264,8 @@
       });
     });
     return '<g class="iso-rack-bank">' + palletPad(x - 1, y - 1, w + 3, d + 3)
-      + paint(rear) + shelves + paint(front) + '<path class="iso-rack-brace" d="' + braces + '"/></g>';
+      + paint(rear) + shelves + paint(front) + '<path class="iso-rack-brace" d="' + braces + '"/>'
+      + environment.rackDetails(x,x===23 ? 'R01' : 'R02') + '</g>';
   }
 
   /* Stackable totes have an open rim and side ribs, unlike solid cartons. */
@@ -357,63 +361,35 @@
       + '<path class="iso-route-done" id="twin-route-done" d="' + d + '"/>';
   }
 
-  /* A human figure. The arm is its own group so it can be animated on its own,
-     which is what makes a scan read as a scan. */
-  function figure(ox, oy) {
-    var legs = '<g class="op-leg op-leg--back">' + box(ox - 0.62, oy - 0.5, 0.52, 1.0, 1.4, 'trouser') + '</g>'
-      + '<g class="op-leg op-leg--front">' + box(ox + 0.10, oy - 0.5, 0.52, 1.0, 1.4, 'trouser') + '</g>';
-    var body = paint([
-      [ox - 0.85, oy - 0.72, 1.7, 1.44, 1.6, 'vest', 1.4],
-      [ox - 0.42, oy - 0.38, 0.84, 0.76, 0.62, 'skin', 3.0],
-      [ox - 0.56, oy - 0.5, 1.12, 1.0, 0.34, 'helmet', 3.62]
-    ]);
-    var arm = box(ox + 0.78, oy - 0.6, 0.22, 1.2, 1.2, 'trouser', 1.6)
-      + box(ox + 0.92, oy - 0.2, 0.5, 0.42, 0.3, 'tyre', 2.5);   // the gun
-    var backArm = '<g class="op-arm-back">' + box(ox - 1.0, oy - 0.6, 0.22, 1.2, 1.2, 'trouser', 1.6) + '</g>';
-    return legs + backArm + body + '<g class="op-arm">' + arm + '</g>';
-  }
-
   // The side alleys are drawn behind their racks/containers. Movement comes
   // from the shared traffic model so a pedestrian can yield mid-route.
   var PATROLS = [
     {id:'roamer',x:18,y:5,route:[[18,5],[18,23]],speed:1.8},
     {id:'operator',x:50,y:5,route:[[50,5],[50,23]],speed:2.1},
     {id:'returns-op',x:93,y:5,route:[[93,5],[93,23]],speed:1.8},
-    {id:'gr-scanner',x:37,y:41,route:[[37,41],[39,41],[39,46],[37,46]],speed:1.2},
-    {id:'wrapping-operator',x:64,y:62,route:[],speed:1.2}
+    {id:'gr-scanner',x:37,y:41,route:[[37,41],[39,41],[39,46],[37,46]],speed:1.2,dwell:2.4,task:'scan'},
+    {id:'wrapping-operator',x:64,y:62,route:[],speed:1.2,heading:-96,task:'wrap'}
   ];
   var ADMIN_ROUTE = [[27,25],[50,25],[50,39],[80,39],[98,43],[98,65],
-    [76,65],[76,43],[55,43],[37,43],[37,37],[18,37],[18,28],[27,25]];
+    [76,65],[76,43],[55,43],[37,43],[37,37],[18,37],[18,28]];
   function walker(index) {
     var person=PATROLS[index];
     return '<g class="iso-figure ' + (person.id==='wrapping-operator' ? 'iso-wrapping-operator' : 'iso-roamer') + '" id="' + person.id + '">'
-      + '<g class="op-walk">' + figure(person.x,person.y) + '</g></g>';
+      + '<g class="op-walk"></g></g>';
   }
 
   /* The five named operators stand in clear spaces beside their work areas. */
   var TEAM = [
-    { name: 'Sơn',  x: 82, y: 63, crew: 'crewA', talk: '0s', area: 'returnables' },
+    { name: 'Sơn',  x: 82, y: 63, crew: 'crewA', talk: '0s', heading:-48, area: 'returnables' },
     { name: 'Ngân', x: 27, y: 25, crew: 'crewB', talk: '3.4s', ponytail: true, area: 'aisle' },
-    { name: 'Minh', x: 36, y: 65, crew: 'crewC', talk: '6.8s', area: 'gr' },
-    { name: 'Trí',  x: 56, y: 63, crew: 'crewD', talk: '1.7s', area: 'interlock' },
-    { name: 'Bách', x: 89, y: 23, crew: 'crewE', talk: '5.1s' }
+    { name: 'Minh', x: 36, y: 65, crew: 'crewC', talk: '6.8s', heading:-126, area: 'gr', task:'scan' },
+    { name: 'Trí',  x: 56, y: 63, crew: 'crewD', talk: '1.7s', heading:-55, area: 'interlock' },
+    { name: 'Bách', x: 89, y: 23, crew: 'crewE', talk: '5.1s', heading:-140 }
   ];
 
   function crew() {
     return '<g class="iso-team">' + TEAM.map(function (m, index) {
       var y = m.y;
-      var specs = [
-        [m.x - 0.62, y - 0.5, 0.52, 1.0, 1.4, m.crew, 0],
-        [m.x + 0.10, y - 0.5, 0.52, 1.0, 1.4, m.crew, 0],
-        [m.x - 0.85, y - 0.72, 1.7, 1.44, 1.6, 'vest', 1.4],
-        [m.x - 1.0, y - 0.6, 0.22, 1.2, 1.2, m.crew, 1.6],
-        [m.x - 0.42, y - 0.38, 0.84, 0.76, 0.62, 'skin', 3.0]
-      ];
-      if (m.ponytail) {
-        specs.push([m.x - 0.5, y + 0.34, 0.62, 0.34, 0.9, 'hair', 2.7]);
-      }
-      specs.push([m.x - 0.56, y - 0.5, 1.12, 1.0, 0.34, 'helmet', 3.62]);
-
       var base = pt(m.x, y, 0);
       var bubbleY = base[1] - 44;      // clear of the hard hat
       var nameY = base[1] - 62;        // and the name clears the bubble
@@ -427,11 +403,7 @@
       return '<g class="iso-member" data-member="' + index + '" data-work-area="' + (m.area || 'putaway') + '" tabindex="-1" role="button" aria-label="' + m.name + '" style="--gesture-delay:' + m.talk + '">'
         + '<title>' + m.name + '</title>'
         + '<rect class="iso-member-hit" x="' + (base[0] - 14) + '" y="' + (base[1] - 34) + '" width="28" height="40" rx="5"/>'
-        + '<g class="iso-member-body">'
-        + '<g class="op-leg op-leg--back">' + paint([specs[0]]) + '</g>'
-        + '<g class="op-leg op-leg--front">' + paint([specs[1]]) + '</g>' + paint(specs.slice(2))
-        +   '<g class="iso-member-arm">' + box(m.x + 0.78, y - 0.6, 0.22, 1.2, 1.2, m.crew, 1.6) + '</g>'
-        + '</g>'
+        + '<g class="iso-member-body"></g>'
         + '<g class="iso-chat" style="animation-delay:' + m.talk + '">'
         +   '<path class="iso-chat-tail" d="M' + (bx + 8).toFixed(1) + ',' + (bubbleY + 14).toFixed(1)
         +     'l5,0l-3,6z"/>'
@@ -488,14 +460,20 @@
     var text = opts.text || function (key) { return key; };
 
     mount.innerHTML =
-      '<svg class="twin__svg" viewBox="58 -35 988 662" preserveAspectRatio="xMidYMid meet" role="group" tabindex="0" aria-label="'
+      '<svg class="twin__svg" viewBox="58 -45 988 690" preserveAspectRatio="xMidYMid meet" role="group" tabindex="0" aria-label="'
       + (opts.description || 'Isometric plan of the hall') + '">'
       + '<g class="twin__hall">'
+      +   environment.definitions()
+      +   environment.foundation()
       +   floorPlate()
       +   lighting()
       +   floorMarks()
+      +   environment.floorFinish()
+      +   environment.shadows()
+      +   environment.areaGuides()
       +   route()
       +   nodes(labels, true)
+      +   environment.shell(text('brand.name'))
       +   freightContainer(0, 'container-blue', true)
       +   walker(0)
       +   '<g data-layout-area="putaway">' + rackBank(23) + '</g>'
@@ -523,17 +501,27 @@
     var view = mount.closest('.view');
     var svg = mount.querySelector('svg');
     var vehicles = [
-      global.WarehouseVehicles.create(mount.querySelector('#dock-truck'), {vehicle:truck(0,0),project:pt,x:6,receiving:true}),
-      global.WarehouseVehicles.create(mount.querySelector('#shipping'), {vehicle:truck(0,0),project:pt,x:105,receiving:false})
+      global.WarehouseVehicles.create(mount.querySelector('#dock-truck'), {vehicle:truck(0,0),project:pt,x:6,receiving:true,shadow:[-4.8,0,17.8,6]}),
+      global.WarehouseVehicles.create(mount.querySelector('#shipping'), {vehicle:truck(0,0),project:pt,x:105,receiving:false,shadow:[-4.8,0,17.8,6]})
     ];
     var activity=global.WarehouseLogistics.create({people:PATROLS.concat(TEAM.map(function (m,i) {
-      return {id:'member-'+i,x:m.x,y:m.y,route:i===1 ? ADMIN_ROUTE : [],speed:2.6};
+      return {id:'member-'+i,x:m.x,y:m.y,route:i===1 ? ADMIN_ROUTE : [],speed:2.6,heading:m.heading,dwell:.35};
     }))});
     var activityRenderer=global.WarehouseLogisticsRenderer.create(mount,pt,activity);
     var hall=mount.querySelector('.twin__hall');
     var teamLayer=mount.querySelector('.iso-team');
     var actorNodes=activity.people.map(function (person) {
       return mount.querySelector(person.id.indexOf('member-')===0 ? '[data-member="'+person.id.slice(7)+'"]' : '#'+person.id);
+    });
+    var actorRigs=activity.people.map(function (person,i) {
+      var config=i<PATROLS.length ? PATROLS[i] : TEAM[i-PATROLS.length];
+      return global.WarehouseOperators.create(actorNodes[i],pt,person,{clothes:config.crew,ponytail:config.ponytail,task:config.task,seed:i*1.73});
+    });
+    var actorShadows=activity.people.map(function () {
+      var shadow=document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+      shadow.setAttribute('class','iso-person-shadow');shadow.setAttribute('rx','5');shadow.setAttribute('ry','2.7');
+      mount.querySelector('#warehouse-moving-shadows').appendChild(shadow);
+      return shadow;
     });
     var active = true;
     var motionQuery = global.matchMedia('(prefers-reduced-motion: reduce)');
@@ -579,7 +567,7 @@
     function positionPeople() {
       var base = mount.getBoundingClientRect();
       if (!base.width || !base.height) { return; }
-      var bodies = people.map(function (person) { return person.group.querySelector('.iso-member-body').getBoundingClientRect(); });
+      var bodies = people.map(function (person) { return person.group.querySelector('.iso-member-hit').getBoundingClientRect(); });
       var blockers = bodies.map(function (b) { return {left:b.left,top:b.top,right:b.right,bottom:b.bottom,weight:1000}; }).concat(Array.from(mount.querySelectorAll('.iso-node-dot')).map(function (dot) {
         var b = dot.getBoundingClientRect();
         return {left:b.left-9,top:b.top-9,right:b.right+9,bottom:b.bottom+9,weight:1000};
@@ -658,7 +646,10 @@
         node.setAttribute('transform','translate('+(position[0]-origin[0])+','+(position[1]-origin[1])+')');
         node.dataset.planX=person.x.toFixed(2);node.dataset.planY=person.y.toFixed(2);
         node.dataset.yieldingTo=person.yieldTo || '';
+        var foot=pt(person.x+.5,person.y+.3,.78);
+        actorShadows[i].setAttribute('cx',foot[0]);actorShadows[i].setAttribute('cy',foot[1]);
         node.classList.toggle('is-walking',!still && person.walking);
+        actorRigs[i].draw(dt,still);
         var before=null,parent=hall;
         if(person.y<28 && person.x<23) before=mount.querySelectorAll('[data-layout-area="putaway"]')[0];
         else if(person.y<28 && person.x<63) before=mount.querySelectorAll('[data-layout-area="putaway"]')[1];
@@ -693,6 +684,8 @@
       people.forEach(function (person) { person.button.classList.toggle('is-greeting',person.group === group); });
       void group.getBoundingClientRect();
       group.classList.add('is-greeting');
+      group.dataset.greetingSerial=String(Number(group.dataset.greetingSerial || 0)+1);
+      requestFrame();
       positionPopover(group.querySelector('.iso-member-body'), greeting);
       greetingTimer = setTimeout(closeGreeting, 3200);
     }
@@ -871,6 +864,7 @@
         closeGreeting();
         labelMembers();
         mount.querySelector('[data-area-label="returnables"]').textContent = text('twin.returnables');
+        mount.querySelector('.iso-building-sign').textContent = text('brand.name');
         NODES.forEach(function (node) {
           var group = mount.querySelector('[data-node-app="' + node.app + '"]');
           if (group) { group.setAttribute('aria-label', node.num + '. ' + newLabels[node.app]); }

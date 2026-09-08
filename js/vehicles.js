@@ -36,6 +36,13 @@
 
   function createMesh(node, options) {
     var opts = options;
+    var shadow=null;
+    if(opts.shadow) {
+      var layer=node.closest('svg').querySelector('#warehouse-moving-shadows');
+      if(layer) {
+        shadow=document.createElementNS(NS,'polygon');shadow.setAttribute('class','iso-vehicle-shadow');layer.appendChild(shadow);
+      }
+    }
     var parts = opts.vehicle.specs.map(function (spec) {
       var group = document.createElementNS(NS,'g');
       var faces = ['top','right','left'].map(function (face) {
@@ -74,6 +81,14 @@
       function point(x,y,z) {
         var xy = world(x,y);
         return opts.project(xy[0],xy[1],z).join(',');
+      }
+      if(shadow) {
+        var footprint=opts.shadow;
+        shadow.setAttribute('points',[[0,0],[footprint[2],0],[footprint[2],footprint[3]],[0,footprint[3]]].map(function (corner) {
+          var at=world(footprint[0]+corner[0],footprint[1]+corner[1]);
+          return opts.project(at[0]+1,at[1]+.6,.79).join(',');
+        }).join(' '));
+        shadow.style.opacity=state.phase==='away' ? '0' : '';
       }
       parts.forEach(function (part) {
         var b = part.spec, x=b[0], y=b[1], w=b[2], d=b[3];

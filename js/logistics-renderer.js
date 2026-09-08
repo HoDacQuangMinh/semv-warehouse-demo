@@ -46,7 +46,9 @@
       var progress=Math.min(1,phase/10),angle=progress*1080;
       wrap.dataset.wrappingPhase=phase<10 ? 'wrapping' : 'finished';
       wrapMesh.draw({x:63,y:53,z:1.75,angle:angle,phase:wrap.dataset.wrappingPhase});
-      mount.querySelector('#wrapping-operator').classList.toggle('is-wrapping',phase<10);
+      var wrappingOperator=mount.querySelector('#wrapping-operator');
+      wrappingOperator.classList.toggle('is-wrapping',phase<10);
+      wrappingOperator.dataset.workTime=phase.toFixed(3);
       // The film builds upward as the turntable rotates. Its feed follows the
       // rising carriage at the mast, while the finished load pauses for a beat.
       var height=.35+progress*6.2,rad=angle*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
@@ -71,7 +73,7 @@
     }
     var machines=model.forklifts.map(function (f) {
       var node=mount.querySelector('#'+f.id);
-      var mesh=global.WarehouseVehicles.createMesh(node,{vehicle:forklift(),project:project,pivot:[0,0],wheelMirrorY:0});
+      var mesh=global.WarehouseVehicles.createMesh(node,{vehicle:forklift(),project:project,pivot:[0,0],wheelMirrorY:0,shadow:[-2,-1.4,7,2.8]});
       var light=document.createElementNS(NS,'circle');light.setAttribute('class','iso-yield-light');light.setAttribute('r','3');node.appendChild(light);
       return {node:node,mesh:mesh,light:light};
     });

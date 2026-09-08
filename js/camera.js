@@ -4,9 +4,9 @@
 
   function create(mount, svg, options) {
     var opts = options || {};
-    var base = { x: 58, y: -35, width: 988, height: 662 };
+    var base = { x: 58, y: -45, width: 988, height: 690 };
     var zoom = 1.04;
-    var frame = { x: 552 - base.width / zoom / 2, y: 298 - base.height / zoom / 2 };
+    var frame = { x: 552 - base.width / zoom / 2, y: 300 - base.height / zoom / 2 };
     var pointers = new Map();
     var start = null;
     var pinch = null;

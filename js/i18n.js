@@ -51,7 +51,7 @@
       'twin.zoomIn': 'Phóng to sơ đồ',
       'twin.zoomOut': 'Thu nhỏ sơ đồ',
       'twin.resetMap': 'Xem toàn bộ xưởng',
-      'twin.alt': 'Sơ đồ phối cảnh của xưởng: cửa dock bên trái, khu xếp hàng ở giữa, giá kệ bên phải, nối với nhau bằng một lối đi.',
+      'twin.alt': 'Sơ đồ phối cảnh nhà kho với hai dãy kệ PutAway giữa các container, khu GR, máy quấn màng Pallet Interlocking và bao bì hoàn trả bên kia lối đi.',
 
       'problem.title': 'Ba điểm nghẽn ngoài kho',
       'problem.lede': 'Số liệu dưới đây phải lấy từ đo đạc thật tại nhà máy trước khi trang này công bố.',
@@ -298,7 +298,7 @@
       'twin.zoomIn': 'Zoom in on the map',
       'twin.zoomOut': 'Zoom out of the map',
       'twin.resetMap': 'Show the whole warehouse',
-      'twin.alt': 'Isometric plan of the hall: dock doors on the left, the build area in the middle, racking on the right, joined by one aisle.',
+      'twin.alt': 'Cutaway warehouse with two PutAway rack banks between container docks, facing GR, the Pallet Interlocking wrapper, and Returnables across the aisle.',
 
       'problem.title': 'Three bottlenecks on the floor',
       'problem.lede': 'The figures below have to come from real measurement at the plant before this page goes public.',
