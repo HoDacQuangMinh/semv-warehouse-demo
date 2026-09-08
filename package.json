@@ -8,6 +8,7 @@
     "check:operators": "node scripts/check-operators.mjs",
     "check:chatter": "node scripts/check-chatter.mjs",
     "check:wrapping": "node scripts/check-wrapping.mjs",
+    "check:grounding": "node scripts/check-grounding.mjs",
     "check:logistics": "node scripts/check-logistics.mjs",
     "check:logistics-browser": "node scripts/check-logistics-browser.mjs",
     "check:lane-priority": "node scripts/check-lane-priority.mjs",

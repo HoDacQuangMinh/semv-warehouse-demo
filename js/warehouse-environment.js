@@ -51,14 +51,30 @@
     }
     function shadows() {
       var out='';
-      [[0,1,13,26,14],[99,1,13,26,14],[23,3,21,14,16],[63,3,21,14,16],
+      [[0,1,13,26,14],[99,1,13,26,14],
         [12,47,9.6,11.4,13],[26,47,9.6,11.4,11],[86,48,9.3,11.2,10],
-        [40,49,4,13,4.5],[44,58,8,4,4.5],[71,50,3.2,4,23],[57,47,12,12,7]].forEach(function(a) {
+        [40,49,4,13,4.5],[44,58,8,4,4.5],[71,50,3.2,4,23]].forEach(function(a) {
         var x=a[0],y=a[1],w=a[2],d=a[3],sx=a[4]*.48,sy=a[4]*.27;
         out+=polygon([[x,y],[x+w,y],[x+w+sx,y+sy],[x+w+sx,y+d+sy],[x+sx,y+d+sy],[x,y+d]].map(function(v){return p(v[0],v[1],.8);}), 'iso-cast-shadow');
         out+=pad(x-.2,y-.2,w+.4,d+.4,'iso-contact-shadow');
       });
-      return '<g class="iso-environment" clip-path="url(#warehouse-floor-clip)">'+out+'</g>'
+      // Open racks contact the floor at their six feet, not across a solid
+      // rectangular block. Upright shadows meet each footplate exactly.
+      [23,63].forEach(function(x){
+        out+='<g class="iso-rack-shadow">';
+        [0,10.5,21].forEach(function(dx){[3,17].forEach(function(y){
+          var px=x+dx,sx=16*.48,sy=16*.27;
+          out+=polygon([[px,y],[px+.7,y],[px+.7+sx,y+sy],[px+.7+sx,y+.7+sy],[px+sx,y+.7+sy],[px,y+.7]].map(function(v){return p(v[0],v[1],.78);}), 'iso-rack-upright-shadow');
+          out+=pad(px-.55,y-.4,1.9,1.9,'iso-contact-shadow');
+        });});
+        out+=pad(x+15.5*.48,3+15.5*.27,21,14,'iso-rack-deck-shadow');
+        out+='</g>';
+      });
+      var turntable=[];
+      for(var i=0;i<48;i++){var a=i*Math.PI/24;turntable.push(p(63+7.38*Math.cos(a),53+7.38*Math.sin(a),.74));}
+      out+='<g class="iso-wrapper-grounding">'+polygon(turntable,'iso-contact-shadow')
+        +pad(69.85,48.85,5.3,8.3,'iso-contact-shadow')+'</g>';
+      return '<g class="iso-environment iso-equipment-shadows" clip-path="url(#warehouse-floor-clip)">'+out+'</g>'
         + '<g id="warehouse-moving-shadows" class="iso-environment" clip-path="url(#warehouse-floor-clip)"></g>';
     }
     function areaGuides() {

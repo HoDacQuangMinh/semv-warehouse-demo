@@ -1,0 +1,35 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "feet": 12,
+      "feetTouch": true,
+      "totesTouch": true,
+      "sideFaces": 24,
+      "maximumSeamError": 0.005000000000022986,
+      "floorBeforeShadows": true,
+      "noFloorOverShadows": true,
+      "wrapperContact": true,
+      "handoff": {
+        "faces": 24,
+        "connected": true
+      }
+    },
+    {
+      "file": "preview-single-file.html",
+      "feet": 12,
+      "feetTouch": true,
+      "totesTouch": true,
+      "sideFaces": 24,
+      "maximumSeamError": 0.005000000000022986,
+      "floorBeforeShadows": true,
+      "noFloorOverShadows": true,
+      "wrapperContact": true,
+      "handoff": {
+        "faces": 24,
+        "connected": true
+      }
+    }
+  ],
+  "errors": []
+}

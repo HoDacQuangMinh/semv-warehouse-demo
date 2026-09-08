@@ -56,11 +56,14 @@
       for(var i=0;i<5;i++)floorSpecs.push([12+i*9,26,3,.16,.02,'machine',.77]);
       mesh('[data-floor]',floorSpecs).draw({x:0,y:0,angle:0,phase:'floor'});
       var rack=[];
-      [24,33].forEach(function(x){rack.push([x,13,.35,.35,10.5,'rack-post',.8]);});
+      [24,33].forEach(function(x){
+        [13,19].forEach(function(y){rack.push([x-.22,y-.22,.8,.8,.14,'steel',.75]);});
+        rack.push([x,13,.35,.35,10.36,'rack-post',.89]);
+      });
       [2.3,6,10].forEach(function(z){rack.push([24,13,9,6,.28,'rack',z]);});
       rack.push([25,14,2.6,3.7,2.3,'load',6.28],[29,14,2.6,3.7,2.3,'load',6.28]);
       mesh('[data-rack]',rack).draw({x:0,y:0,angle:0,phase:'rack'});
-      mesh('[data-rack-front]',[[24,19,.35,.35,10.5,'rack-post',.8],[33,19,.35,.35,10.5,'rack-post',.8],[24,19,9,.3,.35,'rack',6]])
+      mesh('[data-rack-front]',[[24,19,.35,.35,10.36,'rack-post',.89],[33,19,.35,.35,10.36,'rack-post',.89],[24,19,9,.3,.35,'rack',6]])
         .draw({x:0,y:0,angle:0,phase:'rack-front'});
       function label(text,x,y){var n=document.createElementNS(NS,'text');n.textContent=text;var p=project(x,y,.8);n.setAttribute('x',p[0]);n.setAttribute('y',p[1]);n.setAttribute('class','handoff__floor-label');svg.querySelector('[data-floor]').appendChild(n);}
       label('GR',6,30);label('PutAway',24,30);label('Pallet Interlocking',45,32);
@@ -73,11 +76,28 @@
         global.WarehouseVehicles.createMesh(deck,{vehicle:{specs:palletSpecs,wheels:[]},project:project,pivot:[0,0]}).draw({x:28,y:18.15,z:2.58,angle:0,phase:'empty-pallet'});
       }
       var machine=svg.querySelector('[data-machine]');
-      var turntable=document.createElementNS(NS,'ellipse'),at=project(50,18,1.1);
-      turntable.setAttribute('cx',at[0]);turntable.setAttribute('cy',at[1]);turntable.setAttribute('rx','31');turntable.setAttribute('ry','15');
-      turntable.setAttribute('fill','var(--machine)');turntable.setAttribute('stroke','var(--machine-deep)');turntable.setAttribute('stroke-width','3');machine.appendChild(turntable);
+      function groundPad(x,y,w,d){
+        var shape=document.createElementNS(NS,'polygon');
+        shape.setAttribute('points',[[x,y],[x+w,y],[x+w,y+d],[x,y+d]].map(function(p){return project(p[0],p[1],.76).join(',');}).join(' '));
+        shape.setAttribute('class','iso-contact-shadow');svg.querySelector('[data-floor]').appendChild(shape);
+      }
+      [24,33].forEach(function(x){[13,19].forEach(function(y){groundPad(x-.3,y-.3,1,1);});});
+      groundPad(54.7,16.7,2.3,2.6);
+      var tableTop=[],contact=[],radius=2.45;
+      for(var segment=0;segment<48;segment++) {
+        var a=segment*Math.PI/24,b=(segment+1)*Math.PI/24;
+        function rim(angle,z,r){return project(50+Math.cos(angle)*r,18+Math.sin(angle)*r,z).join(',');}
+        tableTop.push(rim(a,1.15,radius));contact.push(rim(a,.76,radius+.15));
+        if(Math.cos((a+b)/2)+Math.sin((a+b)/2)>0){
+          var wall=document.createElementNS(NS,'polygon');wall.setAttribute('class','iso-wrapper-side');
+          wall.setAttribute('points',[rim(a,.75,radius),rim(b,.75,radius),rim(b,1.15,radius),rim(a,1.15,radius)].join(' '));machine.appendChild(wall);
+        }
+      }
+      var contactNode=document.createElementNS(NS,'polygon');contactNode.setAttribute('points',contact.join(' '));contactNode.setAttribute('class','iso-contact-shadow');svg.querySelector('[data-floor]').appendChild(contactNode);
+      var turntable=document.createElementNS(NS,'polygon');turntable.setAttribute('points',tableTop.join(' '));
+      turntable.setAttribute('class','iso-wrapper-top');machine.appendChild(turntable);
       var mast=document.createElementNS(NS,'g');machine.appendChild(mast);
-      global.WarehouseVehicles.createMesh(mast,{vehicle:{specs:[[55,17,1.7,2,8,'machine',.8],[54.7,16.6,.3,.35,7.8,'steel',.9],[56.1,18.9,.8,.3,1.2,'steel',3],[56.3,19.22,.3,.05,.3,'reflective',3.5]],wheels:[]},project:project,pivot:[0,0]})
+      global.WarehouseVehicles.createMesh(mast,{vehicle:{specs:[[54.6,16.6,2.5,2.8,.25,'machine',.75],[55,17,1.7,2,7.8,'machine',1],[54.7,16.6,.3,.35,7.8,'steel',.9],[56.1,18.9,.8,.3,1.2,'steel',3],[56.3,19.22,.3,.05,.3,'reflective',3.5]],wheels:[]},project:project,pivot:[0,0]})
         .draw({x:0,y:0,angle:0,phase:'wrapper'});
       var person={home:{x:0,y:0},heading:0,travel:0,route:[],walking:false,carrying:true,carryHeight:1.02,crouch:.8};
       var personNode=svg.querySelector('[data-person]');

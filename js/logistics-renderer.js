@@ -111,7 +111,7 @@
       wrap.dataset.filmTop=(loadBottom+height).toFixed(3);
       wrap.dataset.loadTop=(loadBottom+loadHeight).toFixed(3);
       var marks=mount.querySelector('#wrapping-turntable-marks');
-      marks.setAttribute('d','M'+point(5.3,0,1.73)+'L'+point(6.6,0,1.73)+'M'+point(-5.3,0,1.73)+'L'+point(-6.6,0,1.73));
+      marks.setAttribute('d','M'+point(5.3,0,1.752)+'L'+point(6.6,0,1.752)+'M'+point(-5.3,0,1.752)+'L'+point(-6.6,0,1.752));
     }
     var machines=model.forklifts.map(function (f) {
       var node=mount.querySelector('#'+f.id);

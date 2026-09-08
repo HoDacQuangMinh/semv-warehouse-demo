@@ -122,6 +122,8 @@
 .iso-tote-rib { fill: none; stroke: #344b5b; stroke-opacity: .6; stroke-width: 1; }
 .iso-wrapper-base { fill: var(--machine-deep); stroke: #7f733b; stroke-width: 2; }
 .iso-wrapper-top { fill: var(--machine); stroke: #7f733b; stroke-width: 1.2; }
+.iso-wrapper-side { fill: #ba822b; stroke: #ba822b; stroke-width: .25; pointer-events: none; }
+.iso-wrapper-side--shade { fill: #916522; stroke: #916522; }
 .iso-wrapper-hub { fill: none; stroke: #7f733b; stroke-width: 1.2; }
 .iso-wrap-contact { fill: #372b15; opacity: .12; pointer-events: none; }
 .iso-wrap-turntable-marks { fill: none; stroke: #78612f; stroke-width: 1.3; pointer-events: none; }
@@ -166,6 +168,8 @@
 .iso-floor-light { fill: url(#warehouse-floor-light); }
 .iso-cast-shadow { fill: #102531; opacity: .21; filter: url(#warehouse-cast-soft); }
 .iso-contact-shadow { fill: #102531; opacity: .18; }
+.iso-rack-upright-shadow { fill: #102531; opacity: .17; }
+.iso-rack-deck-shadow { fill: #102531; opacity: .1; }
 .iso-person-shadow { fill: #102531; opacity: .32; }
 .iso-vehicle-shadow { fill: #102531; opacity: .3; }
 .iso-perimeter-line { fill: none; stroke: #e7eded; stroke-width: 1.2; opacity: .62; }

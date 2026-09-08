@@ -7,6 +7,7 @@
 
   // Isometric projection. Plan coordinates go in, screen coordinates come out.
   var COS = 0.866, SIN = 0.5, SCALE = 6.1, OX = 430, OY = 74;
+  var FLOOR_Z=.7,WRAPPER_TOP=1.75;
 
   function p(x, y, z) {
     var sx = (x - y) * COS * SCALE + OX;
@@ -60,6 +61,9 @@
       [85, 47, 11, 15], [98, 47, 11, 15]].forEach(function (a) {
       out += palletPad(a[0], a[1], a[2], a[3]);
     });
+    // These are painted floor markings. Keep them below the rack shadows,
+    // rather than repainting a bright, shadowless floor inside each rack.
+    [23,63].forEach(function(x){out+='<g class="iso-rack-floor">'+palletPad(x-1,2,24,17)+'</g>';});
     return out;
   }
 
@@ -85,7 +89,7 @@
   }
 
   function floorPlate() {
-    var out = box(0, 0, W, D, 0.7, 'floor');
+    var out = box(0, 0, W, D, FLOOR_Z, 'floor');
     var lines = [];
     for (var gx = 0; gx <= W; gx += 8) {
       lines.push('M' + p(gx, 0, 0.72) + 'L' + p(gx, D, 0.72));
@@ -253,10 +257,15 @@
      Keeping the bays hollow makes them read as the reference's racks. */
   function rackBank(x) {
     var y = 3, w = 21, d = 14, h = 16;
-    var rear = [], front = [], shelves = '';
+    var rear = [], front = [], shelves = '',feet='';
     [0, w / 2, w].forEach(function (dx) {
-      rear.push([x + dx, y, .7, .7, h, 'rack-post', .7]);
-      front.push([x + dx, y + d, .7, .7, h, 'rack-post', .7]);
+      [y,y+d].forEach(function(py){
+        var px=x+dx;
+        feet+='<g class="iso-rack-foot">'
+          + box(px-.4,py-.25,1.6,1.6,.16,'steel',FLOOR_Z)+'</g>';
+      });
+      rear.push([x + dx, y, .7, .7, h-.16, 'rack-post', FLOOR_Z+.16]);
+      front.push([x + dx, y + d, .7, .7, h-.16, 'rack-post', FLOOR_Z+.16]);
     });
     [6.7, 10.5, 15.5].forEach(function (z, level) {
       shelves += '<g data-rack-level="' + ['lower','upper','top'][level] + '">';
@@ -274,14 +283,15 @@
           + 'M' + p(cx + .8, y + d, z) + 'L' + p(cx + .8, y + .5, z + 4.1);
       });
     });
-    return '<g class="iso-rack-bank">' + palletPad(x - 1, y - 1, w + 3, d + 3)
+    return '<g class="iso-rack-bank">' + feet
       + paint(rear) + shelves + paint(front) + '<path class="iso-rack-brace" d="' + braces + '"/>'
       + environment.rackDetails(x,x===23 ? 'R01' : 'R02') + '</g>';
   }
 
   /* Stackable totes have an open rim and side ribs, unlike solid cartons. */
   function toteStack(x, y, layers, kind, w, d) {
-    var out = box(x, y, w, d, .45, 'rib', .9);
+    // Keep the deck at 1.35 while extending its plinth down to the slab.
+    var out = box(x, y, w, d, 1.35-FLOOR_Z, 'rib', FLOOR_Z);
     for (var layer = 0; layer < layers; layer++) {
       var z = 1.35 + layer * 2.4;
       out += box(x, y, w, d, 1.9, kind, z);
@@ -334,20 +344,35 @@
     return poly(points, cls);
   }
 
+  function turntableBody(x,y,radius) {
+    var out='<g class="iso-wrapper-drum">';
+    for(var i=0;i<48;i++) {
+      var a=i*Math.PI/24,b=(i+1)*Math.PI/24,middle=(a+b)/2;
+      if(Math.cos(middle)+Math.sin(middle)<=0) continue;
+      out+=poly([p(x+radius*Math.cos(a),y+radius*Math.sin(a),FLOOR_Z),
+        p(x+radius*Math.cos(b),y+radius*Math.sin(b),FLOOR_Z),
+        p(x+radius*Math.cos(b),y+radius*Math.sin(b),WRAPPER_TOP),
+        p(x+radius*Math.cos(a),y+radius*Math.sin(a),WRAPPER_TOP)],
+        'iso-wrapper-side'+(Math.cos(middle)>Math.sin(middle)?' iso-wrapper-side--shade':''));
+    }
+    return out+'</g>';
+  }
+
   function packArea() {
     var out = '<g data-layout-area="interlock">';
     out += '<g class="iso-l-table">' + table(40, 49, 4, 13) + table(44, 58, 8, 4) + '</g>';
     // Circular wrapping turntable, tall yellow mast, and the film carriage.
     out += '<g class="iso-wrapper">'
-      + discZ(63, 53, 1, 7.2, 'iso-wrapper-base')
-      + discZ(63, 53, 1.7, 7.2, 'iso-wrapper-top')
-      + discZ(63, 53, 1.72, 2.1, 'iso-wrapper-hub')
-      + discZ(63, 53, 1.725, 4.9, 'iso-wrap-contact')
+      + turntableBody(63,53,7.2)
+      + discZ(63, 53, WRAPPER_TOP, 7.2, 'iso-wrapper-top')
+      + discZ(63, 53, WRAPPER_TOP+.005, 2.1, 'iso-wrapper-hub')
+      + discZ(63, 53, WRAPPER_TOP+.01, 4.9, 'iso-wrap-contact')
       + '<path id="wrapping-turntable-marks" class="iso-wrap-turntable-marks"/>'
       + '<g id="wrapping-pallet"></g>'
       + '<g id="wrapping-film" class="iso-stretch-film"></g>'
       + '<path id="wrapping-web" class="iso-stretch-web"/>'
-      + paint([[70, 49, 5, 8, .8, 'machine', .7], [71, 50, 3.2, 4, 23, 'machine', 1.5],
+      + paint([[69.5,52,2.5,2,.35,'steel',FLOOR_Z],
+        [70, 49, 5, 8, .8, 'machine', FLOOR_Z], [71, 50, 3.2, 4, 23, 'machine', FLOOR_Z+.8],
         [69.8, 50.5, 1, 3, 2.3, 'steel', 1.8]])
       + '<g id="wrapping-carriage">' + filmRoll() + '</g>'
       + '</g></g>';

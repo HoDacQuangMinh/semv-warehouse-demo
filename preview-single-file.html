@@ -1577,6 +1577,8 @@ button, a.btn, .bin, .slot, .ch-box, .ch-line, .icon-btn {
 .iso-tote-rib { fill: none; stroke: #344b5b; stroke-opacity: .6; stroke-width: 1; }
 .iso-wrapper-base { fill: var(--machine-deep); stroke: #7f733b; stroke-width: 2; }
 .iso-wrapper-top { fill: var(--machine); stroke: #7f733b; stroke-width: 1.2; }
+.iso-wrapper-side { fill: #ba822b; stroke: #ba822b; stroke-width: .25; pointer-events: none; }
+.iso-wrapper-side--shade { fill: #916522; stroke: #916522; }
 .iso-wrapper-hub { fill: none; stroke: #7f733b; stroke-width: 1.2; }
 .iso-wrap-contact { fill: #372b15; opacity: .12; pointer-events: none; }
 .iso-wrap-turntable-marks { fill: none; stroke: #78612f; stroke-width: 1.3; pointer-events: none; }
@@ -1621,6 +1623,8 @@ button, a.btn, .bin, .slot, .ch-box, .ch-line, .icon-btn {
 .iso-floor-light { fill: url(#warehouse-floor-light); }
 .iso-cast-shadow { fill: #102531; opacity: .21; filter: url(#warehouse-cast-soft); }
 .iso-contact-shadow { fill: #102531; opacity: .18; }
+.iso-rack-upright-shadow { fill: #102531; opacity: .17; }
+.iso-rack-deck-shadow { fill: #102531; opacity: .1; }
 .iso-person-shadow { fill: #102531; opacity: .32; }
 .iso-vehicle-shadow { fill: #102531; opacity: .3; }
 .iso-perimeter-line { fill: none; stroke: #e7eded; stroke-width: 1.2; opacity: .62; }
@@ -4875,7 +4879,7 @@ body[data-view="more"]::after { display: none; }
       wrap.dataset.filmTop=(loadBottom+height).toFixed(3);
       wrap.dataset.loadTop=(loadBottom+loadHeight).toFixed(3);
       var marks=mount.querySelector('#wrapping-turntable-marks');
-      marks.setAttribute('d','M'+point(5.3,0,1.73)+'L'+point(6.6,0,1.73)+'M'+point(-5.3,0,1.73)+'L'+point(-6.6,0,1.73));
+      marks.setAttribute('d','M'+point(5.3,0,1.752)+'L'+point(6.6,0,1.752)+'M'+point(-5.3,0,1.752)+'L'+point(-6.6,0,1.752));
     }
     var machines=model.forklifts.map(function (f) {
       var node=mount.querySelector('#'+f.id);
@@ -5002,14 +5006,30 @@ body[data-view="more"]::after { display: none; }
     }
     function shadows() {
       var out='';
-      [[0,1,13,26,14],[99,1,13,26,14],[23,3,21,14,16],[63,3,21,14,16],
+      [[0,1,13,26,14],[99,1,13,26,14],
         [12,47,9.6,11.4,13],[26,47,9.6,11.4,11],[86,48,9.3,11.2,10],
-        [40,49,4,13,4.5],[44,58,8,4,4.5],[71,50,3.2,4,23],[57,47,12,12,7]].forEach(function(a) {
+        [40,49,4,13,4.5],[44,58,8,4,4.5],[71,50,3.2,4,23]].forEach(function(a) {
         var x=a[0],y=a[1],w=a[2],d=a[3],sx=a[4]*.48,sy=a[4]*.27;
         out+=polygon([[x,y],[x+w,y],[x+w+sx,y+sy],[x+w+sx,y+d+sy],[x+sx,y+d+sy],[x,y+d]].map(function(v){return p(v[0],v[1],.8);}), 'iso-cast-shadow');
         out+=pad(x-.2,y-.2,w+.4,d+.4,'iso-contact-shadow');
       });
-      return '<g class="iso-environment" clip-path="url(#warehouse-floor-clip)">'+out+'</g>'
+      // Open racks contact the floor at their six feet, not across a solid
+      // rectangular block. Upright shadows meet each footplate exactly.
+      [23,63].forEach(function(x){
+        out+='<g class="iso-rack-shadow">';
+        [0,10.5,21].forEach(function(dx){[3,17].forEach(function(y){
+          var px=x+dx,sx=16*.48,sy=16*.27;
+          out+=polygon([[px,y],[px+.7,y],[px+.7+sx,y+sy],[px+.7+sx,y+.7+sy],[px+sx,y+.7+sy],[px,y+.7]].map(function(v){return p(v[0],v[1],.78);}), 'iso-rack-upright-shadow');
+          out+=pad(px-.55,y-.4,1.9,1.9,'iso-contact-shadow');
+        });});
+        out+=pad(x+15.5*.48,3+15.5*.27,21,14,'iso-rack-deck-shadow');
+        out+='</g>';
+      });
+      var turntable=[];
+      for(var i=0;i<48;i++){var a=i*Math.PI/24;turntable.push(p(63+7.38*Math.cos(a),53+7.38*Math.sin(a),.74));}
+      out+='<g class="iso-wrapper-grounding">'+polygon(turntable,'iso-contact-shadow')
+        +pad(69.85,48.85,5.3,8.3,'iso-contact-shadow')+'</g>';
+      return '<g class="iso-environment iso-equipment-shadows" clip-path="url(#warehouse-floor-clip)">'+out+'</g>'
         + '<g id="warehouse-moving-shadows" class="iso-environment" clip-path="url(#warehouse-floor-clip)"></g>';
     }
     function areaGuides() {
@@ -5268,6 +5288,7 @@ body[data-view="more"]::after { display: none; }
 
   // Isometric projection. Plan coordinates go in, screen coordinates come out.
   var COS = 0.866, SIN = 0.5, SCALE = 6.1, OX = 430, OY = 74;
+  var FLOOR_Z=.7,WRAPPER_TOP=1.75;
 
   function p(x, y, z) {
     var sx = (x - y) * COS * SCALE + OX;
@@ -5321,6 +5342,9 @@ body[data-view="more"]::after { display: none; }
       [85, 47, 11, 15], [98, 47, 11, 15]].forEach(function (a) {
       out += palletPad(a[0], a[1], a[2], a[3]);
     });
+    // These are painted floor markings. Keep them below the rack shadows,
+    // rather than repainting a bright, shadowless floor inside each rack.
+    [23,63].forEach(function(x){out+='<g class="iso-rack-floor">'+palletPad(x-1,2,24,17)+'</g>';});
     return out;
   }
 
@@ -5346,7 +5370,7 @@ body[data-view="more"]::after { display: none; }
   }
 
   function floorPlate() {
-    var out = box(0, 0, W, D, 0.7, 'floor');
+    var out = box(0, 0, W, D, FLOOR_Z, 'floor');
     var lines = [];
     for (var gx = 0; gx <= W; gx += 8) {
       lines.push('M' + p(gx, 0, 0.72) + 'L' + p(gx, D, 0.72));
@@ -5514,10 +5538,15 @@ body[data-view="more"]::after { display: none; }
      Keeping the bays hollow makes them read as the reference's racks. */
   function rackBank(x) {
     var y = 3, w = 21, d = 14, h = 16;
-    var rear = [], front = [], shelves = '';
+    var rear = [], front = [], shelves = '',feet='';
     [0, w / 2, w].forEach(function (dx) {
-      rear.push([x + dx, y, .7, .7, h, 'rack-post', .7]);
-      front.push([x + dx, y + d, .7, .7, h, 'rack-post', .7]);
+      [y,y+d].forEach(function(py){
+        var px=x+dx;
+        feet+='<g class="iso-rack-foot">'
+          + box(px-.4,py-.25,1.6,1.6,.16,'steel',FLOOR_Z)+'</g>';
+      });
+      rear.push([x + dx, y, .7, .7, h-.16, 'rack-post', FLOOR_Z+.16]);
+      front.push([x + dx, y + d, .7, .7, h-.16, 'rack-post', FLOOR_Z+.16]);
     });
     [6.7, 10.5, 15.5].forEach(function (z, level) {
       shelves += '<g data-rack-level="' + ['lower','upper','top'][level] + '">';
@@ -5535,14 +5564,15 @@ body[data-view="more"]::after { display: none; }
           + 'M' + p(cx + .8, y + d, z) + 'L' + p(cx + .8, y + .5, z + 4.1);
       });
     });
-    return '<g class="iso-rack-bank">' + palletPad(x - 1, y - 1, w + 3, d + 3)
+    return '<g class="iso-rack-bank">' + feet
       + paint(rear) + shelves + paint(front) + '<path class="iso-rack-brace" d="' + braces + '"/>'
       + environment.rackDetails(x,x===23 ? 'R01' : 'R02') + '</g>';
   }
 
   /* Stackable totes have an open rim and side ribs, unlike solid cartons. */
   function toteStack(x, y, layers, kind, w, d) {
-    var out = box(x, y, w, d, .45, 'rib', .9);
+    // Keep the deck at 1.35 while extending its plinth down to the slab.
+    var out = box(x, y, w, d, 1.35-FLOOR_Z, 'rib', FLOOR_Z);
     for (var layer = 0; layer < layers; layer++) {
       var z = 1.35 + layer * 2.4;
       out += box(x, y, w, d, 1.9, kind, z);
@@ -5595,20 +5625,35 @@ body[data-view="more"]::after { display: none; }
     return poly(points, cls);
   }
 
+  function turntableBody(x,y,radius) {
+    var out='<g class="iso-wrapper-drum">';
+    for(var i=0;i<48;i++) {
+      var a=i*Math.PI/24,b=(i+1)*Math.PI/24,middle=(a+b)/2;
+      if(Math.cos(middle)+Math.sin(middle)<=0) continue;
+      out+=poly([p(x+radius*Math.cos(a),y+radius*Math.sin(a),FLOOR_Z),
+        p(x+radius*Math.cos(b),y+radius*Math.sin(b),FLOOR_Z),
+        p(x+radius*Math.cos(b),y+radius*Math.sin(b),WRAPPER_TOP),
+        p(x+radius*Math.cos(a),y+radius*Math.sin(a),WRAPPER_TOP)],
+        'iso-wrapper-side'+(Math.cos(middle)>Math.sin(middle)?' iso-wrapper-side--shade':''));
+    }
+    return out+'</g>';
+  }
+
   function packArea() {
     var out = '<g data-layout-area="interlock">';
     out += '<g class="iso-l-table">' + table(40, 49, 4, 13) + table(44, 58, 8, 4) + '</g>';
     // Circular wrapping turntable, tall yellow mast, and the film carriage.
     out += '<g class="iso-wrapper">'
-      + discZ(63, 53, 1, 7.2, 'iso-wrapper-base')
-      + discZ(63, 53, 1.7, 7.2, 'iso-wrapper-top')
-      + discZ(63, 53, 1.72, 2.1, 'iso-wrapper-hub')
-      + discZ(63, 53, 1.725, 4.9, 'iso-wrap-contact')
+      + turntableBody(63,53,7.2)
+      + discZ(63, 53, WRAPPER_TOP, 7.2, 'iso-wrapper-top')
+      + discZ(63, 53, WRAPPER_TOP+.005, 2.1, 'iso-wrapper-hub')
+      + discZ(63, 53, WRAPPER_TOP+.01, 4.9, 'iso-wrap-contact')
       + '<path id="wrapping-turntable-marks" class="iso-wrap-turntable-marks"/>'
       + '<g id="wrapping-pallet"></g>'
       + '<g id="wrapping-film" class="iso-stretch-film"></g>'
       + '<path id="wrapping-web" class="iso-stretch-web"/>'
-      + paint([[70, 49, 5, 8, .8, 'machine', .7], [71, 50, 3.2, 4, 23, 'machine', 1.5],
+      + paint([[69.5,52,2.5,2,.35,'steel',FLOOR_Z],
+        [70, 49, 5, 8, .8, 'machine', FLOOR_Z], [71, 50, 3.2, 4, 23, 'machine', FLOOR_Z+.8],
         [69.8, 50.5, 1, 3, 2.3, 'steel', 1.8]])
       + '<g id="wrapping-carriage">' + filmRoll() + '</g>'
       + '</g></g>';
@@ -7030,11 +7075,14 @@ body[data-view="more"]::after { display: none; }
       for(var i=0;i<5;i++)floorSpecs.push([12+i*9,26,3,.16,.02,'machine',.77]);
       mesh('[data-floor]',floorSpecs).draw({x:0,y:0,angle:0,phase:'floor'});
       var rack=[];
-      [24,33].forEach(function(x){rack.push([x,13,.35,.35,10.5,'rack-post',.8]);});
+      [24,33].forEach(function(x){
+        [13,19].forEach(function(y){rack.push([x-.22,y-.22,.8,.8,.14,'steel',.75]);});
+        rack.push([x,13,.35,.35,10.36,'rack-post',.89]);
+      });
       [2.3,6,10].forEach(function(z){rack.push([24,13,9,6,.28,'rack',z]);});
       rack.push([25,14,2.6,3.7,2.3,'load',6.28],[29,14,2.6,3.7,2.3,'load',6.28]);
       mesh('[data-rack]',rack).draw({x:0,y:0,angle:0,phase:'rack'});
-      mesh('[data-rack-front]',[[24,19,.35,.35,10.5,'rack-post',.8],[33,19,.35,.35,10.5,'rack-post',.8],[24,19,9,.3,.35,'rack',6]])
+      mesh('[data-rack-front]',[[24,19,.35,.35,10.36,'rack-post',.89],[33,19,.35,.35,10.36,'rack-post',.89],[24,19,9,.3,.35,'rack',6]])
         .draw({x:0,y:0,angle:0,phase:'rack-front'});
       function label(text,x,y){var n=document.createElementNS(NS,'text');n.textContent=text;var p=project(x,y,.8);n.setAttribute('x',p[0]);n.setAttribute('y',p[1]);n.setAttribute('class','handoff__floor-label');svg.querySelector('[data-floor]').appendChild(n);}
       label('GR',6,30);label('PutAway',24,30);label('Pallet Interlocking',45,32);
@@ -7047,11 +7095,28 @@ body[data-view="more"]::after { display: none; }
         global.WarehouseVehicles.createMesh(deck,{vehicle:{specs:palletSpecs,wheels:[]},project:project,pivot:[0,0]}).draw({x:28,y:18.15,z:2.58,angle:0,phase:'empty-pallet'});
       }
       var machine=svg.querySelector('[data-machine]');
-      var turntable=document.createElementNS(NS,'ellipse'),at=project(50,18,1.1);
-      turntable.setAttribute('cx',at[0]);turntable.setAttribute('cy',at[1]);turntable.setAttribute('rx','31');turntable.setAttribute('ry','15');
-      turntable.setAttribute('fill','var(--machine)');turntable.setAttribute('stroke','var(--machine-deep)');turntable.setAttribute('stroke-width','3');machine.appendChild(turntable);
+      function groundPad(x,y,w,d){
+        var shape=document.createElementNS(NS,'polygon');
+        shape.setAttribute('points',[[x,y],[x+w,y],[x+w,y+d],[x,y+d]].map(function(p){return project(p[0],p[1],.76).join(',');}).join(' '));
+        shape.setAttribute('class','iso-contact-shadow');svg.querySelector('[data-floor]').appendChild(shape);
+      }
+      [24,33].forEach(function(x){[13,19].forEach(function(y){groundPad(x-.3,y-.3,1,1);});});
+      groundPad(54.7,16.7,2.3,2.6);
+      var tableTop=[],contact=[],radius=2.45;
+      for(var segment=0;segment<48;segment++) {
+        var a=segment*Math.PI/24,b=(segment+1)*Math.PI/24;
+        function rim(angle,z,r){return project(50+Math.cos(angle)*r,18+Math.sin(angle)*r,z).join(',');}
+        tableTop.push(rim(a,1.15,radius));contact.push(rim(a,.76,radius+.15));
+        if(Math.cos((a+b)/2)+Math.sin((a+b)/2)>0){
+          var wall=document.createElementNS(NS,'polygon');wall.setAttribute('class','iso-wrapper-side');
+          wall.setAttribute('points',[rim(a,.75,radius),rim(b,.75,radius),rim(b,1.15,radius),rim(a,1.15,radius)].join(' '));machine.appendChild(wall);
+        }
+      }
+      var contactNode=document.createElementNS(NS,'polygon');contactNode.setAttribute('points',contact.join(' '));contactNode.setAttribute('class','iso-contact-shadow');svg.querySelector('[data-floor]').appendChild(contactNode);
+      var turntable=document.createElementNS(NS,'polygon');turntable.setAttribute('points',tableTop.join(' '));
+      turntable.setAttribute('class','iso-wrapper-top');machine.appendChild(turntable);
       var mast=document.createElementNS(NS,'g');machine.appendChild(mast);
-      global.WarehouseVehicles.createMesh(mast,{vehicle:{specs:[[55,17,1.7,2,8,'machine',.8],[54.7,16.6,.3,.35,7.8,'steel',.9],[56.1,18.9,.8,.3,1.2,'steel',3],[56.3,19.22,.3,.05,.3,'reflective',3.5]],wheels:[]},project:project,pivot:[0,0]})
+      global.WarehouseVehicles.createMesh(mast,{vehicle:{specs:[[54.6,16.6,2.5,2.8,.25,'machine',.75],[55,17,1.7,2,7.8,'machine',1],[54.7,16.6,.3,.35,7.8,'steel',.9],[56.1,18.9,.8,.3,1.2,'steel',3],[56.3,19.22,.3,.05,.3,'reflective',3.5]],wheels:[]},project:project,pivot:[0,0]})
         .draw({x:0,y:0,angle:0,phase:'wrapper'});
       var person={home:{x:0,y:0},heading:0,travel:0,route:[],walking:false,carrying:true,carryHeight:1.02,crouch:.8};
       var personNode=svg.querySelector('[data-person]');
