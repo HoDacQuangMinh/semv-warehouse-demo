@@ -11,6 +11,7 @@
   var challenge = null;
   var lastBin = window.Demos.suggestedBin;
   var hero = null;
+  var handoffBusy=false;
 
   /* ------------------------------------------------------------- Theme */
 
@@ -64,7 +65,7 @@
       if (hero) { hero.relabel(); }
       if (twin) { twin.relabel(appLabels()); twin.hideTip(); }
       syncToolLabels();
-      paintDots();
+      paintBoard();
     });
   }
 
@@ -169,6 +170,7 @@
     hero = {
       sweep: sweep,
       startIdle: startIdle,
+      setActive: function(active) { if(active && !scanned) startIdle();else stopIdle(); },
       relabel: function () { if (scanned) { reveal(); } }
     };
   }
@@ -231,9 +233,6 @@
     // One orchestrated moment on load: the hero settles, the label is read,
     // and a forklift crosses the floor. The warehouse actors run independently.
     document.body.classList.add('is-intro');
-    setTimeout(function () { hero.sweep(); }, 700);
-    setTimeout(function () { window.Forklift.run(); }, 1100);
-    setTimeout(function () { hero.startIdle(); }, 2600);
 
     // The dock runs on its own loop now, so nothing needs starting here.
   }
@@ -256,6 +255,9 @@
   function initRouter() {
     window.Router.onChange(function (id) {
       if (twin) { twin.setActive(id === 'home'); }
+      if (hero) { hero.setActive(id==='more'); }
+      if (challenge) { challenge.setActive(id==='more'); }
+      if (window.WarehouseHandoff.isActive()) window.WarehouseHandoff.cancel();
       if (id === 'gr' || id === 'interlock' || id === 'putaway') { mountDemo(id); }
       paintBoard();
     });
@@ -274,14 +276,21 @@
       stamp.classList.add('is-in');
     }
 
-    flashWipe();
-
-    // Finishing the last station sends the sealed container out of the yard.
-    if (app === 'interlock' && twin) { twin.departTruck(); }
-
-    window.Forklift.run().then(function () {
-      if (State.allDone()) { openFinale(); }
-    });
+    // A delayed demo callback must not pull someone back from another view.
+    if(window.Router.current()!==app || handoffBusy) return;
+    if(State.allDone()) {
+      if(twin) twin.departTruck();
+      window.Router.go('home');
+      return;
+    }
+    var next=app==='gr' ? 'putaway' : app==='putaway' ? 'interlock' : null;
+    if(next) {
+      handoffBusy=true;
+      window.WarehouseHandoff.play(app).then(function(completed){
+        handoffBusy=false;
+        if(completed && window.Router.current()===app) window.Router.go(next,{instant:true});
+      });
+    }
   }
 
   /* -------------------------------------------------- Progress and flow */
@@ -306,9 +315,12 @@
   }
 
   function paintBoard() {
+    paintJourneyButtons();
     paintDots();
     State.apps.forEach(function (app) {
       var done = State.isDone(app);
+      var homeStep=document.querySelector('[data-home-step="'+app+'"]');
+      if(homeStep){homeStep.classList.toggle('is-done',done);homeStep.setAttribute('aria-label',t(PREFIX[app]+'.name')+(done?' · '+t('station.done'):''));}
       var seg = document.querySelector('.progress__seg[data-seg="' + app + '"]');
       if (seg) { seg.classList.toggle('is-filled', done); }
 
@@ -356,6 +368,7 @@
   }
 
   function resetAll() {
+    window.WarehouseHandoff.cancel();
     State.reset();
     Object.keys(demos).forEach(function (app) { demos[app].reset(); });
     document.querySelectorAll('[data-stamp]').forEach(function (stamp) {
@@ -379,13 +392,23 @@
     // the plan. Roles and links are still blanks for the team to fill in.
     var names = (twin && twin.members) ? twin.members()
       : ['Sơn', 'Ngân', 'Minh', 'Trí', 'Bách'];
-    list.innerHTML = names.map(function (name) {
+    list.innerHTML = names.map(function (name,index) {
       return '<li class="team__card">'
+        + '<span class="team__avatar" aria-hidden="true">' + name.slice(0,1) + '</span>'
         + '<span class="team__slot">' + name + '</span>'
-        + '<span class="team__role">' + t('team.role') + '</span>'
-        + '<span class="team__link">' + t('team.link') + '</span>'
+        + '<span class="team__role">Syntax Squad · 0' + (index+1) + '</span>'
         + '</li>';
     }).join('');
+  }
+
+  function paintJourneyButtons() {
+    document.querySelectorAll('[data-journey]').forEach(function(button){
+      button.textContent=t(State.allDone()?'project.replay':State.count()?'project.resume':'project.start');
+    });
+  }
+  function startJourney() {
+    if(State.allDone()) resetAll();
+    window.Router.go(State.apps.find(function(app){return !State.isDone(app);}) || 'gr');
   }
 
   /* --------------------------------------------------- Header height */
@@ -462,6 +485,12 @@
     if (reset) { reset.addEventListener('click', resetAll); }
 
     initRouter();
+    document.querySelectorAll('[data-journey]').forEach(function(button){button.addEventListener('click',startJourney);});
+    document.querySelectorAll('[data-project-section]').forEach(function(button){button.addEventListener('click',function(){
+      var section=document.getElementById(button.dataset.projectSection);
+      section.scrollIntoView({behavior:window.Forklift.prefersReducedMotion()?'instant':'smooth',block:'start'});
+      var heading=section.querySelector('h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+    });});
     trackHeaderHeight();
     fitHomeCanvas();
 

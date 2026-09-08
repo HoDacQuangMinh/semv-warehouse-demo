@@ -23,15 +23,28 @@
     var foreground=mount.querySelector('[data-layout-area="gr"]');
     var blue=mount.querySelector('[data-container="receiving"]');
     var green=mount.querySelector('[data-container="shipping"]');
+    var dockTrucks=[mount.querySelector('#dock-truck'),mount.querySelector('#shipping')];
     var racks=Array.from(mount.querySelectorAll('.iso-rack-bank'));
     var cargoNodes=new Map();
     var gate=mount.querySelector('#dock-gate'),gateLift=0;
     var wrap=mount.querySelector('#wrapping-pallet'),film=mount.querySelector('#wrapping-film');
     var web=mount.querySelector('#wrapping-web'),carriage=mount.querySelector('#wrapping-carriage'),wrapTime=0;
-    var wrapSpecs=[[-3.4,-3.2,6.8,6.4,.35,'rib',0]];
+    var palletHeight=.68,loadBottom=1.75+palletHeight,cartonHeight=2.8,layerPitch=2.88;
+    var loadHeight=layerPitch+cartonHeight,bandWidth=1.55,half=3.13;
+    var wrapSpecs=[];
+    [-2.8,0,2.8].forEach(function (y) {
+      wrapSpecs.push([-3.5,y-.3,7,.6,.16,'wrap-pallet',0]);
+      [-2.9,0,2.9].forEach(function (x) {wrapSpecs.push([x-.3,y-.3,.6,.6,.35,'wrap-pallet',.16]);});
+    });
+    for(var board=0;board<5;board++) wrapSpecs.push([-3.5,-3.35+board*1.34,7,1.16,.17,'wrap-pallet',.51]);
     for(var level=0;level<2;level++) {
       for(var x=0;x<2;x++) for(var y=0;y<2;y++) {
-        wrapSpecs.push([-3.15+x*3.2,-2.95+y*3,3.05,2.85,3.1,'load',.35+level*3.1]);
+        var bx=-3.1+x*3.14,by=-3.1+y*3.14,z=palletHeight+level*layerPitch;
+        wrapSpecs.push([bx,by,3.06,3.06,cartonHeight,'wrap-carton',z]);
+        // Visible carton seams and tape keep the two tiers from merging into
+        // one solid cube. Alternate the tape direction on the upper tier.
+        wrapSpecs.push(level ? [bx,by+1.39,3.06,.28,.02,'wrap-tape',z+cartonHeight]
+          : [bx+1.39,by,.28,3.06,.02,'wrap-tape',z+cartonHeight]);
       }
     }
     var wrapMesh=global.WarehouseVehicles.createMesh(wrap,{vehicle:{specs:wrapSpecs,wheels:[]},project:project,pivot:[0,0]});
@@ -43,7 +56,8 @@
     function drawWrapper(dt) {
       wrapTime+=dt/1000;
       var phase=wrapTime%14;
-      var progress=Math.min(1,phase/10),angle=progress*1080;
+      var progress=phase<1 ? phase*phase/18 : phase<9 ? (phase-.5)/9 : phase<10 ? 1-Math.pow(10-phase,2)/18 : 1;
+      var angle=progress*1080;
       wrap.dataset.wrappingPhase=phase<10 ? 'wrapping' : 'finished';
       wrapMesh.draw({x:63,y:53,z:1.75,angle:angle,phase:wrap.dataset.wrappingPhase});
       var wrappingOperator=mount.querySelector('#wrapping-operator');
@@ -51,25 +65,53 @@
       wrappingOperator.dataset.workTime=phase.toFixed(3);
       // The film builds upward as the turntable rotates. Its feed follows the
       // rising carriage at the mast, while the finished load pauses for a beat.
-      var height=.35+progress*6.2,rad=angle*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
+      var height=bandWidth+progress*(loadHeight-bandWidth),rad=angle*Math.PI/180,c=Math.cos(rad),s=Math.sin(rad);
       function point(x,y,z) {return project(63+x*c-y*s,53+x*s+y*c,z).join(',');}
-      var corners=[[-3.28,-3.08],[3.28,-3.08],[3.28,3.08],[-3.28,3.08]];
+      var corners=[[-half,-half],[half,-half],[half,half],[-half,half]];
       var visible=[s-c>0,c+s>0,c-s>0,-c-s>0];
+      film.style.opacity=phase>13.3 ? String(Math.max(0,(14-phase)/.7)) : '1';
       filmFaces.forEach(function (face,i) {
         var a=corners[i],b=corners[(i+1)%4];
         face.style.visibility=visible[i] ? 'visible' : 'hidden';
-        face.setAttribute('points',[point(a[0],a[1],2.1),point(b[0],b[1],2.1),point(b[0],b[1],2.1+height),point(a[0],a[1],2.1+height)].join(' '));
+        face.setAttribute('points',[point(a[0],a[1],loadBottom),point(b[0],b[1],loadBottom),point(b[0],b[1],loadBottom+height),point(a[0],a[1],loadBottom+height)].join(' '));
       });
       var lines='';
-      for(var z=2.7;z<2.1+height;z+=.8) {
-        corners.forEach(function (a,i) {var b=corners[(i+1)%4];if(visible[i]) lines+='M'+point(a[0],a[1],z)+'L'+point(b[0],b[1],z);});
+      var pitch=(loadHeight-bandWidth)/3;
+      for(var turn=0;turn<4;turn++) {
+        corners.forEach(function (a,i) {
+          if(!visible[i]) return;
+          var b=corners[(i+1)%4],low=loadBottom+.2+turn*pitch+i*pitch/4,high=low+pitch/4;
+          if(low>=loadBottom+height) return;
+          var t=Math.min(1,(loadBottom+height-low)/(high-low));
+          lines+='M'+point(a[0],a[1],low)+'L'+point(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,low+(high-low)*t);
+        });
       }
       seams.setAttribute('d',lines);
-      var feed=project(69.5,52,2.1+height),feedTop=project(69.5,52,2.9+height);
-      var origin=project(69.5,52,0),raised=project(69.5,52,progress*6.2);
+      // Feed the film onto a tangent corner, never through the cartons. The
+      // winding direction selects the same outer tangent throughout a turn.
+      var feedX=68.83,feedY=52.15,dx=feedX-63,dy=feedY-53;
+      var localFeed=[dx*c+dy*s,-dx*s+dy*c];
+      var contact=corners.find(function (a) {
+        return corners.every(function (b) {
+          return (a[0]-localFeed[0])*(b[1]-localFeed[1])-(a[1]-localFeed[1])*(b[0]-localFeed[0])>=-1e-8;
+        });
+      });
+      var feedZ=loadBottom+height-bandWidth;
+      var feed=project(feedX,feedY,feedZ),feedTop=project(feedX,feedY,feedZ+bandWidth);
+      var returnProgress=Math.max(0,Math.min(1,(phase-12)/2));
+      returnProgress=returnProgress*returnProgress*(3-2*returnProgress);
+      var lift=(height-bandWidth)*(1-returnProgress);
+      var origin=project(feedX,feedY,0),raised=project(feedX,feedY,lift);
       carriage.setAttribute('transform','translate(0,'+(raised[1]-origin[1])+')');
-      web.setAttribute('d','M'+feed.join(',')+'L'+point(3.28,0,2.1+height)+'L'+point(3.28,0,2.9+height)+'L'+feedTop.join(',')+'Z');
+      carriage.dataset.filmBottom=(loadBottom+lift).toFixed(3);
+      web.setAttribute('d','M'+feed.join(',')+'L'+point(contact[0],contact[1],feedZ)+'L'+point(contact[0],contact[1],feedZ+bandWidth)+'L'+feedTop.join(',')+'Z');
       web.style.visibility=phase<10 ? 'visible' : 'hidden';
+      web.dataset.contactX=(63+contact[0]*c-contact[1]*s).toFixed(4);
+      web.dataset.contactY=(53+contact[0]*s+contact[1]*c).toFixed(4);
+      wrap.dataset.filmTop=(loadBottom+height).toFixed(3);
+      wrap.dataset.loadTop=(loadBottom+loadHeight).toFixed(3);
+      var marks=mount.querySelector('#wrapping-turntable-marks');
+      marks.setAttribute('d','M'+point(5.3,0,1.73)+'L'+point(6.6,0,1.73)+'M'+point(-5.3,0,1.73)+'L'+point(-6.6,0,1.73));
     }
     var machines=model.forklifts.map(function (f) {
       var node=mount.querySelector('#'+f.id);
@@ -97,7 +139,7 @@
       var dockLift=progress<.14 || progress>=.78 ? 0 : progress<.20 ? (progress-.14)/.06 : progress<=.68 ? 1 : 1-(progress-.68)/.10;
       var target=model.gateOpen() ? 1 : 0;
       gateLift+=Math.sign(target-gateLift)*Math.min(Math.abs(target-gateLift),clock.dt/800);
-      gate.style.setProperty('transform','translateY('+(-54*Math.max(dockLift,gateLift))+ 'px)','important');
+      gate.style.setProperty('transform','translateY('+(-83*Math.max(dockLift,gateLift))+ 'px)','important');
       gate.dataset.forkliftCrossing=String(target===1);
       gate.dataset.clearanceLift=gateLift.toFixed(6);
       gate.dataset.dockProgress=progress.toFixed(6);
@@ -125,11 +167,17 @@
         var angle=f ? f.angle : p.angle || 0;
         item.mesh.draw({x:p.x,y:p.y,z:p.z,angle:angle,phase:p.owner});
         item.node.dataset.owner=p.owner;
-        place(item.node,p,true);
+        var dockIndex=Math.abs(p.x-6)<3.1 ? 0 : Math.abs(p.x-105)<3.1 ? 1 : -1;
+        var insideTrailer=dockIndex>=0 && p.y>26.8 && p.y<40 && dockTrucks[dockIndex].dataset.vehiclePhase==='loading';
+        if(p.owner==='truck-in' || p.owner==='truck-out' || insideTrailer) {
+          var truck=dockTrucks[p.owner==='truck-in' ? 0 : p.owner==='truck-out' ? 1 : dockIndex];
+          if(item.node.nextSibling!==truck) hall.insertBefore(item.node,truck);
+          item.node.depthLayer=null;
+        } else place(item.node,p,true);
       });
       cargoNodes.forEach(function (item,id) {if(!live.has(id)){item.node.remove();cargoNodes.delete(id);}});
     }
     return {draw:draw};
   }
-  global.WarehouseLogisticsRenderer={create:create};
+  global.WarehouseLogisticsRenderer={create:create,forklift:forklift,pallet:pallet};
 })(window);

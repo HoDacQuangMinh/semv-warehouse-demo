@@ -32,7 +32,9 @@
     move(28,25,-90),rotate(0),move(68,25,0),rotate(-90),lift(7.45),move(68,19,-90),lift(7.12),drop('rack-upper'),
     lift(6.9),move(68,24,-90),pause(1.5),lift(7.12),move(68,19,-90),pickup('rack-upper'),lift(7.45),
     move(68,25,-90),lift(1.05),rotate(0),move(92,25,0),rotate(90),move(92,32,90),rotate(0),wait('green-clear'),
-    move(105,32,0),rotate(-90),move(105,20,-90),lift(1.32),drop('green-buffer'),
+    move(105,32,0),rotate(-90),move(105,20,-90),lift(1.32),drop('green-buffer'),pause(.6),
+    wait('outbound-ready'),pickup('green-buffer'),lift(2.7),move(105,21,-90),rotate(90),
+    move(105,26,90),lift(2.3),drop('truck-out'),lift(2.12),move(105,20,90),wait('green-clear'),
     move(105,32,-90),rotate(180),move(92,32,180),rotate(90),move(92,37,90),
     rotate(180),move(52,37,180),rotate(-90),move(52,25,-90),rotate(180)
   ];
@@ -53,17 +55,18 @@
     var cargo=[{id:'pallet-0',owner:'rack-upper',x:68,y:15.2,z:7.12,angle:-90}], serial=0, delivered=0, trips=0;
     var trucks={receiving:{phase:'away',progress:.9,y:80},shipping:{phase:'away',progress:.9,y:80}};
     function owned(owner) { return cargo.find(function (p) { return p.owner===owner; }); }
-    function ready(truck) { return truck.phase==='loading' && truck.progress>=.20 && truck.progress<.37; }
+    function ready(truck) { return truck.phase==='loading' && truck.progress>=.24 && truck.progress<.48; }
     function clear(truck) { return truck.phase==='away' && truck.progress<.89; }
     function condition(name,f) {
       if(name==='inbound-ready') return ready(trucks.receiving) && !owned('truck-in') && !owned('rack-ground');
       if(name==='blue-clear') return clear(trucks.receiving);
       if(name==='green-clear') return clear(trucks.shipping);
+      if(name==='outbound-ready') return ready(trucks.shipping);
       if(name==='ground-free') return !owned('rack-ground') && forklifts[1].x>38;
       if(name==='ground-ready') return !!owned('rack-ground') && (forklifts[0].x<20 || forklifts[0].waitingFor==='ground-free');
       return true;
     }
-    function advance(f) { f.step=(f.step+1)%f.program.length; f.elapsed=0; }
+    function advance(f) { f.step=(f.step+1)%f.program.length; f.elapsed=0;f.pace=0; }
     function beginYield(person,f) {
       if(person.paused) return;
       if(person.yieldTo && !person.returning && distance(person,person.aside)>.15) return;
@@ -107,6 +110,13 @@
     function update(dt,states) {
       dt=Math.max(0,Math.min(dt,.1));
       if(states) trucks=states;
+      var outboundCargo=owned('truck-out');
+      if(outboundCargo) {
+        var truck=trucks.shipping,angle=truck.angle===undefined ? -90 : truck.angle;
+        outboundCargo.x=(truck.x===undefined ? 105 : truck.x)+7.2*Math.cos(angle*RAD);
+        outboundCargo.y=truck.y+7.2*Math.sin(angle*RAD);outboundCargo.angle=angle;
+        if(truck.phase==='away') {cargo=cargo.filter(function(p){return p!==outboundCargo;});delivered++;}
+      }
       people.forEach(function (person) {
         person.walking=false;person.turning=false;
         if(person.paused) {person.pace=0;return;}
@@ -143,10 +153,13 @@
         } else if(action.type==='move') {
           var blocked=people.filter(function (p) { return obstructing(p,f,action); });
           if(blocked.length) {
+            f.pace=0;
             f.phase='yielding'; f.waitingFor=blocked[0].id;
             blocked.forEach(function (p) { beginYield(p,f); });
           } else {
-            var step=toward(f,action,dt*f.speed);
+            var desired=Math.min(f.speed,Math.sqrt(2*5*distance(f,action)));
+            f.pace=Math.min(desired,(f.pace || 0)+dt*5);
+            var step=toward(f,action,dt*f.pace);
             f.x=step.x;f.y=step.y;f.angle=action.angle;
             if(step.arrived) advance(f);
           }
@@ -167,7 +180,8 @@
             var point=forkPoint(f);
             // Retain the latest delivery inside the container. Older stock is
             // archived there so the repeating scene does not grow endlessly.
-            if(action.owner==='green-buffer') {cargo=cargo.filter(function (p) {return p.owner!=='green-buffer';});delivered++;}
+            if(action.owner==='green-buffer') f.loadingOutbound=true;
+            if(action.owner==='truck-out') f.loadingOutbound=false;
             pallet.x=point.x;pallet.y=point.y;pallet.z=point.z;pallet.angle=f.angle;pallet.owner=action.owner;f.cargo=null;
             if(action.owner==='rack-ground') trips++;
             advance(f);
@@ -176,11 +190,15 @@
           f.elapsed+=dt;if(f.elapsed>=action.seconds) advance(f);
         }
         var pallet=owned(f.id);
-        if(pallet) { var point=forkPoint(f);pallet.x=point.x;pallet.y=point.y;pallet.z=point.z; }
+        if(pallet) { var point=forkPoint(f);pallet.x=point.x;pallet.y=point.y;pallet.z=point.z;pallet.angle=f.angle; }
       });
     }
     return {people:people,forklifts:forklifts,update:update,cargo:function(){return cargo;},
       gateOpen:function () {var f=forklifts[0];return f.x<15 && f.y>20;},
+      loading:function (side) {
+        if(side==='receiving') return !!owned('truck-in') || (forklifts[0].x<13 && forklifts[0].y>22);
+        return forklifts[1].loadingOutbound || (forklifts[1].x>99 && forklifts[1].y>21 && !!owned('truck-out'));
+      },
       stats:function(){return {received:serial,stored:trips,delivered:delivered};}};
   }
   global.WarehouseLogistics={create:create,forkPoint:forkPoint};

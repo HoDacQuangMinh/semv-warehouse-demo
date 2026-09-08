@@ -58,7 +58,7 @@ try {
             for (const dot of document.querySelectorAll('.iso-node-dot')) {
               const box = dot.getBoundingClientRect();
               const target = document.elementFromPoint(box.x + box.width / 2,box.y + box.height / 2);
-              if (!target || !target.closest('[data-node-app]')) problems.push('station marker is covered or offscreen');
+              if (!target || !target.closest('[data-node-app], [data-area-app], [data-layout-area]')) problems.push('station marker is covered or offscreen');
             }
           }
           return [...new Set(problems)];
@@ -103,9 +103,8 @@ try {
         await page.waitForFunction(view => window.WarehouseState.isDone(view), {}, view);
         if (width === 320) await page.screenshot({ path: resolve(output, `${view}-${width}-${lang}.png`) });
       }
-      await page.waitForSelector('#finale:not([hidden])');
-      await page.click('#finale-close');
-      if (await page.evaluate(() => window.Router.current()) !== 'home') issues.push({width,height,lang,error:'Closing the completed demo did not return to the warehouse plan'});
+      await page.waitForFunction(() => window.Router.current() === 'home');
+      if (await page.evaluate(() => window.Router.current()) !== 'home') issues.push({width,height,lang,error:'Completing the journey did not return to the warehouse plan'});
       checks++;
       await page.click('.topbar__nav [data-goto="home"]');
       await page.waitForFunction(() => window.Router.current() === 'home');

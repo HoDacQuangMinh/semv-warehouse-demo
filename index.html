@@ -15,6 +15,9 @@
 <link rel="stylesheet" href="css/twin.css">
 <link rel="stylesheet" href="css/views.css">
 <link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/project.css">
+<link rel="stylesheet" href="css/handoff.css">
+<link rel="stylesheet" href="css/warehouse-home.css">
 </head>
 <body>
 
@@ -66,17 +69,23 @@
   <section class="view is-active" id="view-home">
     <div class="twin" id="twin">
       <div class="twin__head">
-        <span class="twin__title" data-i18n="twin.title"></span>
+        <span class="twin__title"><span class="warehouse-status-dot" aria-hidden="true"></span><span data-i18n="home.plan"></span></span>
         <span class="twin__hint" data-i18n="twin.explore"></span>
       </div>
       <div id="twin-stage"></div>
       <div class="stage-overlay">
+        <p class="warehouse-kicker" data-i18n="home.kicker"></p>
         <h1 data-i18n="stage.title"></h1>
         <p class="stage-overlay__by" data-i18n="stage.by"></p>
         <div class="stage-overlay__foot">
-          <button class="btn btn-primary" type="button" data-goto="gr" data-i18n="hero.next"></button>
+          <button class="btn btn-primary" type="button" data-journey></button>
           <div class="dots" data-dots aria-hidden="true"></div>
         </div>
+        <nav class="warehouse-steps" data-i18n-aria="project.workflow">
+          <button type="button" data-goto="gr" data-home-step="gr"><span>01</span><span data-i18n="home.receive"></span></button>
+          <button type="button" data-goto="putaway" data-home-step="putaway"><span>02</span><span data-i18n="home.store"></span></button>
+          <button type="button" data-goto="interlock" data-home-step="interlock"><span>03</span><span data-i18n="home.dispatch"></span></button>
+        </nav>
         <p class="progress__label" id="progress-label" aria-live="polite"></p>
       </div>
     </div>
@@ -136,7 +145,7 @@
 
         <p class="app-view__eyebrow">
           <svg class="station__icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect x="4" y="7" width="11" height="7" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="17" y="7" width="11" height="7" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="4" y="16" width="7" height="11" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="16" width="7" height="11" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="22" y="16" width="6" height="11" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-          <span data-station-label="2"></span>
+          <span data-station-label="3"></span>
           <span class="stamp" data-stamp data-i18n="station.done" hidden></span>
         </p>
 
@@ -178,7 +187,7 @@
 
         <p class="app-view__eyebrow">
           <svg class="station__icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect x="4" y="5" width="24" height="22" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 12.3h24M4 19.7h24M12 5v22M20 5v22" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="13" y="13.6" width="6" height="5" fill="currentColor"/></svg>
-          <span data-station-label="3"></span>
+          <span data-station-label="2"></span>
           <span class="stamp" data-stamp data-i18n="station.done" hidden></span>
         </p>
 
@@ -211,10 +220,14 @@
   </section>
 
   <section class="view view--doc" id="view-more" hidden>
-    <div class="band">
+<nav class="project-nav" data-i18n-aria="project.nav"><div class="wrap"><button type="button" data-project-section="overview" data-i18n="project.overview"></button><button type="button" data-project-section="flow" data-i18n="project.workflow"></button><button type="button" data-project-section="sample" data-i18n="project.try"></button><button type="button" data-project-section="challenge" data-i18n="project.challenge"></button><button type="button" data-project-section="team" data-i18n="project.team"></button></div></nav>
+<section id="overview" class="project-hero band"><div class="wrap">
+<div class="project-hero__copy"><p class="project-kicker" data-i18n="project.kicker"></p><h2 data-view-heading data-i18n="project.title"></h2><p class="section-lede" data-i18n="project.lede"></p><button type="button" class="btn btn-primary" data-journey></button></div>
+<div class="project-route" aria-hidden="true"><span class="project-route__line"></span><div><b>01</b><span>Goods Received</span><small>BX-00001</small></div><div><b>02</b><span>PutAway</span><small>SEMV_PA</small></div><div><b>03</b><span>Pallet Interlocking</span><small>PAL-001</small></div></div></div></section>
+<section class="band project-scan" id="sample">
       <div class="wrap">
-        <h2 data-view-heading data-i18n="hero.title"></h2>
-        <p class="section-lede" data-i18n="hero.lede"></p>
+        <h2 data-i18n="project.scan.title"></h2>
+        <p class="section-lede" data-i18n="project.scan.body"></p>
       <div class="scanbox" id="scanbox">
         <div class="scanbox__stage" id="scan-stage">
           <svg class="carton" viewBox="0 0 300 210" role="img" aria-labelledby="carton-title">
@@ -243,7 +256,7 @@
       </div>
         <p class="fineprint" data-i18n="hero.hint"></p>
       </div>
-    </div>
+    </section>
 
   <!-- ============ PROBLEM ============ -->
   <section id="problem" class="band">
@@ -253,22 +266,16 @@
 
       <div class="pains">
         <article class="pain">
-          <span class="pain__stat" data-i18n="problem.stat.todo"></span>
           <h3 data-i18n="problem.1.title"></h3>
           <p data-i18n="problem.1.body"></p>
-          <p class="pain__source" data-i18n="problem.source.todo"></p>
         </article>
         <article class="pain">
-          <span class="pain__stat" data-i18n="problem.stat.todo"></span>
           <h3 data-i18n="problem.2.title"></h3>
           <p data-i18n="problem.2.body"></p>
-          <p class="pain__source" data-i18n="problem.source.todo"></p>
         </article>
         <article class="pain">
-          <span class="pain__stat" data-i18n="problem.stat.todo"></span>
           <h3 data-i18n="problem.3.title"></h3>
           <p data-i18n="problem.3.body"></p>
-          <p class="pain__source" data-i18n="problem.source.todo"></p>
         </article>
       </div>
     </div>
@@ -295,19 +302,19 @@
           <h3 data-i18n="flow.1.title"></h3>
           <p data-i18n="flow.1.body"></p>
           <span class="flow__state" data-flow-state data-i18n="flow.state.waiting"></span>
-        </li>
+        <button class="btn btn-ghost" type="button" data-goto="gr" data-i18n="project.open"></button></li>
         <li class="flow__step" data-flow="putaway">
           <span class="flow__step-num" aria-hidden="true">2</span>
           <h3 data-i18n="flow.2.title"></h3>
           <p data-i18n="flow.2.body"></p>
           <span class="flow__state" data-flow-state data-i18n="flow.state.waiting"></span>
-        </li>
+        <button class="btn btn-ghost" type="button" data-goto="putaway" data-i18n="project.open"></button></li>
         <li class="flow__step" data-flow="interlock">
           <span class="flow__step-num" aria-hidden="true">3</span>
           <h3 data-i18n="flow.3.title"></h3>
           <p data-i18n="flow.3.body"></p>
           <span class="flow__state" data-flow-state data-i18n="flow.state.waiting"></span>
-        </li>
+        <button class="btn btn-ghost" type="button" data-goto="interlock" data-i18n="project.open"></button></li>
       </ol>
 
       <div class="flow__reset">
@@ -324,18 +331,17 @@
       <div class="ba">
         <div class="ba__cell">
           <span class="ba__key" data-i18n="results.before"></span>
-          <span class="ba__todo" data-i18n="problem.stat.todo"></span>
+          <p data-i18n="results.1"></p>
         </div>
         <div class="ba__cell">
           <span class="ba__key" data-i18n="results.after"></span>
-          <span class="ba__todo" data-i18n="problem.stat.todo"></span>
+          <p data-i18n="results.2"></p>
         </div>
         <div class="ba__cell">
           <span class="ba__key" data-i18n="results.saved"></span>
-          <span class="ba__todo" data-i18n="problem.stat.todo"></span>
+          <p data-i18n="results.3"></p>
         </div>
       </div>
-      <p class="pain__source" data-i18n="problem.source.todo"></p>
     </div>
   </section>
 
@@ -344,38 +350,21 @@
     <div class="wrap">
       <h2 data-i18n="tech.title"></h2>
       <p class="section-lede" data-i18n="tech.lede"></p>
-      <dl class="specs">
-        <div class="specs__row"><dt data-i18n="tech.1.title"></dt><dd data-i18n="tech.1.body"></dd></div>
-        <div class="specs__row"><dt data-i18n="tech.2.title"></dt><dd data-i18n="tech.2.body"></dd></div>
-        <div class="specs__row"><dt data-i18n="tech.3.title"></dt><dd data-i18n="tech.3.body"></dd></div>
-        <div class="specs__row"><dt data-i18n="tech.4.title"></dt><dd data-i18n="tech.4.body"></dd></div>
-        <div class="specs__row"><dt data-i18n="tech.5.title"></dt><dd data-i18n="tech.5.body"></dd></div>
-      </dl>
-    </div>
-  </section>
-
-  <!-- ============ VIDEO ============ -->
-  <section id="video" class="band">
-    <div class="wrap">
-      <h2 data-i18n="video.title"></h2>
-      <p class="section-lede" data-i18n="video.body"></p>
-      <!-- Replace this block with the iframe once the cut is final. -->
-      <div class="video-slot">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M4 5.5h16v13H4z" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M10.5 9.4v5.2l4.4-2.6z" fill="currentColor"/>
-        </svg>
-        <span data-i18n="video.todo"></span>
+      <div class="specs project-specs">
+        <details><summary data-i18n="tech.1.title"></summary><p data-i18n="tech.1.body"></p></details>
+        <details><summary data-i18n="tech.2.title"></summary><p data-i18n="tech.2.body"></p></details>
+        <details><summary data-i18n="tech.3.title"></summary><p data-i18n="tech.3.body"></p></details>
+        <details><summary data-i18n="tech.4.title"></summary><p data-i18n="tech.4.body"></p></details>
+        <details><summary data-i18n="tech.5.title"></summary><p data-i18n="tech.5.body"></p></details>
       </div>
     </div>
   </section>
-
-  <!-- ============ TEAM ============ -->
+<!-- ============ TEAM ============ -->
   <section id="team" class="band band--alt">
     <div class="wrap">
       <h2 data-i18n="team.title"></h2>
-      <p class="section-lede" data-i18n="team.lede"></p>
-      <ul class="team" id="team-list"></ul>
+      <p class="section-lede" data-i18n="project.team.body"></p>
+      <ul class="team" id="team-list"></ul><button class="btn btn-ghost" type="button" data-goto="home" data-i18n="project.team.cta"></button>
     </div>
   </section>
 
@@ -429,6 +418,7 @@
 <script src="js/i18n.js"></script>
 <script src="js/state.js"></script>
 <script src="js/forklift.js"></script>
+<script src="js/transition-forklift.js"></script>
 <script src="js/camera.js"></script>
   <script src="js/vehicles.js"></script>
 <script src="js/logistics.js"></script>
@@ -439,6 +429,7 @@
 <script src="js/router.js"></script>
 <script src="js/challenge.js"></script>
 <script src="js/demos.js"></script>
+<script src="js/handoff.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

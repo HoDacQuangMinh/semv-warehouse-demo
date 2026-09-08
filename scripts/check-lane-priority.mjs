@@ -17,7 +17,7 @@ try {
       // Advance each vehicle's own clock, preserving an intentional traffic
       // hold. Run the app with live animations, then park browser playback.
       document.getAnimations().forEach(a=>{
-        if(a.effect.target.dataset.trafficHold!=='true') {
+        if(a.effect.target.dataset.trafficHold!=='true' && a.effect.target.dataset.loadingHold!=='true') {
           const clock=a.currentTime || 0;a.play();a.currentTime=clock+100;
         }
       });
@@ -28,8 +28,8 @@ try {
   for(const file of ['index.html','preview-single-file.html']) {
     await page.goto(pathToFileURL(resolve(file)).href);
     const result=await page.evaluate(()=>{
-      let priority=false,held=false,dropped=false,exited=false,dropAt=0,exitAt=0;
-      for(let frame=0;frame<650;frame++) {
+      let priority=false,held=false,dropped=false,loaded=false,exited=false,dropAt=0,exitAt=0;
+      for(let frame=0;frame<1400;frame++) {
         window.__tick();
         const truck=document.querySelector('#shipping'),fork=document.querySelector('#shuttle');
         priority ||= truck.dataset.lanePriority==='true';
@@ -41,14 +41,15 @@ try {
           dropped=true;dropAt=frame/10;
           if(fork.dataset.cargo!=='') throw new Error('Forklift must release its load inside the container');
         }
-        if(dropped && Number(fork.dataset.vehicleX)<98 && truck.dataset.trafficHold==='false') {
+        if(document.querySelector('[data-owner="truck-out"]')) loaded=true;
+        if(dropped && loaded && Number(fork.dataset.vehicleX)<98 && truck.dataset.trafficHold==='false') {
           exited=true;exitAt=frame/10;break;
         }
       }
-      return {priority,held,dropped,exited,dropAt,exitAt};
+      return {priority,held,dropped,loaded,exited,dropAt,exitAt};
     });
-    assert.ok(result.priority && result.held && result.dropped && result.exited,JSON.stringify(result));
-    assert.ok(result.dropAt<40 && result.exitAt-result.dropAt<10,'The forklift must drop and exit promptly');
+    assert.ok(result.priority && result.held && result.dropped && result.loaded && result.exited,JSON.stringify(result));
+    assert.ok(result.dropAt<50 && result.exitAt-result.dropAt<85,'The forklift must stage, reload the truck, then clear the lane without deadlocking');
     console.log(file,result);
   }
   assert.deepEqual(errors,[]);

@@ -15,7 +15,8 @@
   }
 
   function pt(x, y, z) {
-    return p(x, y, z).split(',').map(Number);
+    return [Math.round(((x-y)*COS*SCALE+OX)*10)/10,
+      Math.round(((x+y)*SIN*SCALE-(z || 0)*SCALE+OY)*10)/10];
   }
 
   function poly(points, cls) {
@@ -145,15 +146,23 @@
      corner casting at each end, which is what separates it from a plain box. */
   function containerBody(ox, oy, kind, z0) {
     var base = z0 || 0;
-    var specs = [[ox, oy, VEH_LEN, VEH_W, 5.2, kind, base]];
+    // Hollow trailer: the rear opening is real geometry, not a painted face.
+    var specs = [[ox, oy, VEH_LEN, VEH_W, .2, kind, base],
+      [ox, oy, .2, VEH_W, 5.2, kind, base],
+      [ox, oy, VEH_LEN, .18, 5.2, kind, base],
+      [ox, oy + VEH_W - .18, VEH_LEN, .18, 5.2, kind, base],
+      [ox, oy, VEH_LEN, VEH_W, .18, kind, base + 5.02]];
     for (var i = 1; i < 9; i++) {
       specs.push([ox + i * 1.4, oy + VEH_W - .12, .32, .22, 4.9, 'rib', base + .15]);
     }
     // Full-height corrugated sides, roof rails, and the paired rear doors.
     specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .42, 'rib', base + 4.75]);
     specs.push([ox, oy + VEH_W - .14, VEH_LEN, .26, .36, 'rib', base]);
-    specs.push([ox + VEH_LEN - .12, oy + .45, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
-    specs.push([ox + VEH_LEN - .12, oy + VEH_W / 2 + .1, .22, VEH_W / 2 - .55, 4.5, 'rib', base + .35]);
+    [0,1].forEach(function (side) {
+      var hinge={x:ox+VEH_LEN,y:oy+side*VEH_W,sign:side ? 1 : -1};
+      specs.push([ox+VEH_LEN-.12,oy+side*VEH_W/2,.22,VEH_W/2,4.8,'cont',base+.2,hinge]);
+      specs.push([ox+VEH_LEN+.12,oy+side*VEH_W/2+1.3,.12,.12,4.4,'steel',base+.4,hinge]);
+    });
     [ox, ox + VEH_LEN - .7].forEach(function (x) {
       specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base + 4.6]);
       specs.push([x, oy + VEH_W - .3, .7, .3, .6, 'tyre', base]);
@@ -214,26 +223,28 @@
     }
     var out = '<g class="iso-freight-container" data-container="' + (receiving ? 'receiving' : 'shipping') + '">'
       + paint(specs);
-    out += box(x - 3.4, y + d - .2, 3.5, .5, h, kind, .7);
-    out += box(x + w - .1, y + d - .2, 3.5, .5, h, kind, .7);
-    if (receiving) { out += dockGate(x + 2.5, y + d); }
+    if (receiving) { out += dockGate(x + .65, y + d); }
+    else {
+      out += box(x - 3.4, y + d - .2, 3.5, .5, h, kind, .7);
+      out += box(x + w - .1, y + d - .2, 3.5, .5, h, kind, .7);
+    }
     out += environment.dockDetails(x,receiving ? 'D01' : 'D02');
     return out + '</g>';
   }
 
   function dockGate(x, y) {
-    var opening = [p(x, y, 8), p(x + 8, y, 8), p(x + 8, y + .6, 8),
-      p(x + 8, y + .6, 0), p(x, y + .6, 0), p(x, y + .6, 8)];
+    var width=11.7,height=13.4,base=1.3;
+    var opening = [p(x,y,height+base),p(x+width,y,height+base),p(x+width,y+.6,height+base),
+      p(x+width,y+.6,base),p(x,y+.6,base),p(x,y+.6,height+base)];
     var slats = '';
-    for (var z = 1; z < 8; z++) {
-      slats += 'M' + p(x, y + .61, z) + 'L' + p(x + 8, y + .61, z);
+    for (var z = base; z < height+base; z+=.8) {
+      slats += 'M' + p(x, y + .61, z) + 'L' + p(x + width, y + .61, z);
     }
     return '<g class="iso-dock-doorway">'
       + '<defs><clipPath id="dock-gate-opening" clipPathUnits="userSpaceOnUse">'
       + poly(opening, '') + '</clipPath></defs>'
-      + box(x, y, 8, .6, 8, 'doorway')
       + '<g clip-path="url(#dock-gate-opening)"><g class="iso-dock-gate" id="dock-gate">'
-      + box(x, y, 8, .6, 8, 'shadow')
+      + box(x, y, width, .6, height, 'container-blue',base)
       + '<path class="iso-gate-slat" d="' + slats + '"/></g></g></g>';
   }
 
@@ -331,14 +342,33 @@
       + discZ(63, 53, 1, 7.2, 'iso-wrapper-base')
       + discZ(63, 53, 1.7, 7.2, 'iso-wrapper-top')
       + discZ(63, 53, 1.72, 2.1, 'iso-wrapper-hub')
+      + discZ(63, 53, 1.725, 4.9, 'iso-wrap-contact')
+      + '<path id="wrapping-turntable-marks" class="iso-wrap-turntable-marks"/>'
       + '<g id="wrapping-pallet"></g>'
       + '<g id="wrapping-film" class="iso-stretch-film"></g>'
       + '<path id="wrapping-web" class="iso-stretch-web"/>'
       + paint([[70, 49, 5, 8, .8, 'machine', .7], [71, 50, 3.2, 4, 23, 'machine', 1.5],
         [69.8, 50.5, 1, 3, 2.3, 'steel', 1.8]])
-      + '<g id="wrapping-carriage">' + paint([[68.7, 51, 1.1, 2.3, 1.5, 'film', 2]]) + '</g>'
+      + '<g id="wrapping-carriage">' + filmRoll() + '</g>'
       + '</g></g>';
     return out;
+  }
+
+  function filmRoll() {
+    var x=69.25,y=52.15,bottom=2.43,height=1.55,radius=.42;
+    var out=paint([[69.65,51.45,.4,1.4,height+.7,'steel',bottom-.35],
+      [68.7,51.8,1.1,.7,.16,'steel',bottom-.2],
+      [68.7,51.8,1.1,.7,.16,'steel',bottom+height+.04]]);
+    for(var i=0;i<24;i++) {
+      var a=i*Math.PI/12,b=(i+1)*Math.PI/12,middle=(a+b)/2;
+      if(Math.cos(middle)+Math.sin(middle)<=0) continue;
+      out+=poly([p(x+Math.cos(a)*radius,y+Math.sin(a)*radius,bottom),
+        p(x+Math.cos(b)*radius,y+Math.sin(b)*radius,bottom),
+        p(x+Math.cos(b)*radius,y+Math.sin(b)*radius,bottom+height),
+        p(x+Math.cos(a)*radius,y+Math.sin(a)*radius,bottom+height)],'iso-wrap-roll-side');
+    }
+    return out+discZ(x,y,bottom+height,radius,'iso-wrap-roll-top')
+      +discZ(x,y,bottom+height+.01,.12,'iso-wrap-roll-core');
   }
 
   function layoutLabels(text) {
@@ -496,6 +526,10 @@
       + '</g>'
       + '</svg>';
 
+    // This marker is painted on the floor behind the wrapping equipment.
+    // Drawing it last made its green rings appear on top of the cartons.
+    var interlockArea=mount.querySelector('[data-layout-area="interlock"]');
+    interlockArea.parentNode.insertBefore(mount.querySelector('[data-node-app="interlock"]'),interlockArea);
     var tip = buildTip(mount);
     var tipGroup = null;
     var view = mount.closest('.view');
@@ -531,6 +565,16 @@
     greeting.setAttribute('aria-live', 'polite');
     greeting.hidden = true;
     mount.appendChild(greeting);
+    var chatterBubble = document.createElement('div');
+    chatterBubble.className = 'twin__greeting twin__chatter';
+    chatterBubble.setAttribute('aria-hidden', 'true');
+    chatterBubble.hidden = true;
+    mount.appendChild(chatterBubble);
+    var chatter = null, chatterRemaining = 0, chatterTurns = 0;
+    var nextChatter = 4000 + Math.random() * 4000;
+    var spokenAt = TEAM.map(function () { return 0; });
+    var lastPhrase = TEAM.map(function () { return -1; });
+    var PHRASES = ['Hello!', 'Xin chào!', 'I love RMIT!'];
     var greeted = null;
     var greetingTimer = null;
     var greetingCount = TEAM.map(function (_, index) { return index % 3; });
@@ -564,6 +608,7 @@
       return person;
     });
 
+    var lastPeopleLayout=0,rigElapsed=actorNodes.map(function(){return 0;});
     function positionPeople() {
       var base = mount.getBoundingClientRect();
       if (!base.width || !base.height) { return; }
@@ -623,7 +668,10 @@
       var dt = previousFrame ? Math.max(0,Math.min(1000,now-previousFrame)) : 0;
       previousFrame = now;
       var outbound=activity.forklifts[1];
-      var needsLane=(outbound.cargo && outbound.x>=68 && outbound.y>=18.5 && outbound.lift<2) || outbound.x>98;
+      var needsLane=!outbound.loadingOutbound && !activity.cargo().some(function(p){return p.owner==='truck-out';}) &&
+        ((outbound.cargo && outbound.x>=68 && outbound.y>=18.5 && outbound.lift<2) || outbound.x>98);
+      vehicles[0].holdDock(!still && activity.loading('receiving'));
+      vehicles[1].holdDock(!still && activity.loading('shipping'));
       vehicles[1].clearLane(!still && !!needsLane);
       vehicles.forEach(function (vehicle) { vehicle.update(still); });
       activity.people.forEach(function (person,i) {
@@ -649,7 +697,12 @@
         var foot=pt(person.x+.5,person.y+.3,.78);
         actorShadows[i].setAttribute('cx',foot[0]);actorShadows[i].setAttribute('cy',foot[1]);
         node.classList.toggle('is-walking',!still && person.walking);
-        actorRigs[i].draw(dt,still);
+        // The feet keep their distance-based phase. Joint meshes need only
+        // 30 updates/second at this scale; world movement still follows RAF.
+        rigElapsed[i]+=dt;
+        if(still || rigElapsed[i]>=32 || !node.dataset.operatorAction) {
+          actorRigs[i].draw(rigElapsed[i],still);rigElapsed[i]=0;
+        }
         var before=null,parent=hall;
         if(person.y<28 && person.x<23) before=mount.querySelectorAll('[data-layout-area="putaway"]')[0];
         else if(person.y<28 && person.x<63) before=mount.querySelectorAll('[data-layout-area="putaway"]')[1];
@@ -659,26 +712,84 @@
         var layer=before || parent;
         if(node.depthLayer!==layer) { parent.insertBefore(node,before);node.depthLayer=layer; }
       });
-      positionPeople();
+      // Label collision layout is substantially more expensive than moving
+      // the SVG figures. Reflow it at 10 Hz while the scene keeps animating.
+      if(!lastPeopleLayout || now-lastPeopleLayout>=100 || still) {positionPeople();lastPeopleLayout=now;}
+      updateChatter(dt);
       if (!still) { requestFrame(); }
     }
     new ResizeObserver(requestFrame).observe(mount);
 
     function closeGreeting() {
       clearTimeout(greetingTimer);
+      clearChatter();
+      nextChatter = Math.max(nextChatter, 5000);
       if (greeted) { greeted.classList.remove('is-greeting'); }
       people.forEach(function (person) { person.button.classList.remove('is-greeting'); });
       greeted = null;
       greeting.hidden = true;
     }
 
+    function clearChatter() {
+      if (chatter) { chatter.group.classList.remove('is-speaking'); }
+      chatter = null;
+      chatterBubble.hidden = true;
+    }
+
+    function speechMarkup(index, phrase) {
+      return '<strong>' + escapeHtml(TEAM[index].name) + '</strong><span>' + escapeHtml(phrase) + '</span>';
+    }
+
+    function updateChatter(dt) {
+      // Ambient conversation shares the warehouse clock and never interrupts
+      // a greeting, a station preview, map navigation, or a completed demo.
+      if (still || greeted || camera.isDragging() || !tip.hidden || document.querySelector('.overlay.is-open')) {
+        clearChatter();
+        return;
+      }
+      if (chatter) {
+        chatterRemaining -= dt;
+        if (chatterRemaining <= 0 || chatter.button.hidden) { clearChatter(); }
+        else { positionPopover(chatter.group.querySelector('.iso-member-hit'), chatterBubble); }
+        return;
+      }
+      nextChatter -= dt;
+      if (nextChatter > 0) { return; }
+      var candidates = people.map(function (person, index) { return {person:person,index:index}; }).filter(function (candidate) {
+        var person = candidate.person;
+        if (person.button.hidden || person.hover || person.focus) { return false; }
+        var box = person.group.querySelector('.iso-member-hit').getBoundingClientRect();
+        var at = document.elementFromPoint((box.left + box.right) / 2, (box.top + box.bottom) / 2);
+        return !!at && person.group.contains(at);
+      });
+      if (!candidates.length) { nextChatter = 1500; return; }
+      // Give each visible teammate a turn, with random ordering and timing.
+      var earliest = Math.min.apply(null, candidates.map(function (c) { return spokenAt[c.index]; }));
+      candidates = candidates.filter(function (c) { return spokenAt[c.index] === earliest; });
+      var selected = candidates[Math.floor(Math.random() * candidates.length)];
+      var index = selected.index;
+      var choices = PHRASES.map(function (_, i) { return i; }).filter(function (i) { return i !== lastPhrase[index]; });
+      var phrase = choices[Math.floor(Math.random() * choices.length)];
+      lastPhrase[index] = phrase;
+      spokenAt[index] = ++chatterTurns;
+      chatter = selected.person;
+      chatter.group.classList.add('is-speaking');
+      chatterBubble.innerHTML = speechMarkup(index, PHRASES[phrase]);
+      chatterBubble.hidden = false;
+      chatterRemaining = 3200 + Math.random() * 800;
+      nextChatter = 5000 + Math.random() * 5000;
+      positionPopover(chatter.group.querySelector('.iso-member-hit'), chatterBubble);
+    }
+
     function sayHello(group) {
       var index = Number(group.getAttribute('data-member'));
       if (!TEAM[index]) { return; }
+      clearChatter();
+      nextChatter = 10000 + Math.random() * 5000;
       closeGreeting();
       hideTip();
-      var phrase = ['Hello!', 'Xin chào!', 'I love RMIT!'][greetingCount[index]++ % 3];
-      greeting.innerHTML = '<strong>' + escapeHtml(TEAM[index].name) + '</strong><span>' + escapeHtml(phrase) + '</span>';
+      var phrase = PHRASES[greetingCount[index]++ % PHRASES.length];
+      greeting.innerHTML = speechMarkup(index, phrase);
       greeting.hidden = false;
       greeted = group;
       people.forEach(function (person) { person.button.classList.toggle('is-greeting',person.group === group); });
@@ -704,7 +815,8 @@
     var camera = global.WarehouseCamera.create(mount, svg, {
       text: text,
       onMove: function () {
-        hideTip(); closeGreeting();
+        hideTip(); closeGreeting(); clearChatter();
+        nextChatter = 6000 + Math.random() * 4000;
         people.forEach(function (person) { person.placement = null; });
         requestFrame();
       }
@@ -729,6 +841,7 @@
       else { svg.unpauseAnimations(); }
       if (still) { svg.setCurrentTime(0); }
       if (paused) {
+        clearChatter();
         cancelAnimationFrame(frameId); frameId = 0; previousFrame = 0;
       }
       if (active && !document.hidden) { requestFrame(); }

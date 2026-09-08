@@ -46,6 +46,13 @@
       message: null
     };
     var ticker = null;
+    var active=false,lastTick=0;
+    function focus(selector) { var node=mount.querySelector(selector);if(node)node.focus({preventScroll:true}); }
+    function syncClock() {
+      clearInterval(ticker);ticker=null;lastTick=Date.now();
+      if(active && !document.hidden && s.phase==='play') ticker=setInterval(tick,250);
+    }
+    document.addEventListener('visibilitychange',syncClock);
 
     function assignedCount() { return Object.keys(s.assigned).length; }
 
@@ -67,6 +74,12 @@
 
       if (s.phase === 'done') {
         var missed = missedCount();
+        var score=CARTONS.filter(function(c){return s.assigned[c.code].flagged===c.bad;}).length;
+        var review=CARTONS.map(function(c){
+          var correct=s.assigned[c.code].flagged===c.bad;
+          return '<li class="'+(correct?'is-good':'')+'"><strong>'+esc(c.code)+' · '+esc(correct?t('challenge.correct'):t('challenge.flag'))+'</strong>'
+            +esc(t(c.code==='BX-00002'?'challenge.error.item':c.code==='BX-00004'?'challenge.error.qty':'challenge.error.clear'))+'</li>';
+        }).join('');
         mount.innerHTML =
           '<div class="ch ch--result">'
           + '<h3>' + esc(t('challenge.done.title')) + '</h3>'
@@ -74,7 +87,9 @@
           + '<p class="ch__verdict ' + (missed ? 'is-bad' : 'is-good') + '">'
           +   esc(missed ? t('challenge.done.missed', { n: missed }) : t('challenge.done.caught'))
           + '</p>'
+          + '<p><strong>' + esc(t('challenge.score',{n:score})) + '</strong></p><ul class="ch__review">'+review+'</ul>'
           + '<p>' + esc(t('challenge.done.note')) + '</p>'
+          + '<button class="btn btn-primary" type="button" data-goto="gr">'+esc(t('gr.name'))+'</button> '
           + '<button class="btn btn-ghost" type="button" data-act="reset">' + esc(t('challenge.reset')) + '</button>'
           + '</div>';
         return;
@@ -106,10 +121,10 @@
         '<div class="ch">'
         + '<div class="ch__bar">'
         +   '<span class="ch__time mono" data-time>' + esc(t('challenge.time')) + ' ' + clock(s.elapsed) + '</span>'
-        +   '<button class="btn-flag' + (s.flagMode ? ' is-on' : '') + '" type="button" data-act="flag">'
+        +   '<button class="btn-flag' + (s.flagMode ? ' is-on' : '') + '" type="button" data-act="flag" aria-pressed="'+s.flagMode+'">'
         +     esc(t(s.flagMode ? 'challenge.flagged' : 'challenge.flag')) + '</button>'
         + '</div>'
-        + '<p class="ch__hint">' + esc(s.message || t('challenge.pick')) + '</p>'
+        + '<p class="ch__hint" role="status">' + esc(s.message || t('challenge.pick')) + '</p>'
         + '<div class="ch__grid">'
         +   '<div><p class="ch__cap">' + esc(t('challenge.boxes')) + '</p><div class="ch__boxes">' + boxes + '</div></div>'
         +   '<div><p class="ch__cap">' + esc(t('challenge.paper')) + '</p><div class="ch__paper">' + rows + '</div></div>'
@@ -118,7 +133,9 @@
     }
 
     function tick() {
-      s.elapsed = Date.now() - s.startedAt;
+      var now=Date.now();
+      if(active && !document.hidden && s.phase==='play') s.elapsed+=now-lastTick;
+      lastTick=now;
       var node = mount.querySelector('[data-time]');
       if (node) { node.textContent = t('challenge.time') + ' ' + clock(s.elapsed); }
     }
@@ -132,16 +149,16 @@
       s.flagMode = false;
       s.message = null;
       render();
-      clearInterval(ticker);
-      ticker = setInterval(tick, 250);
+      syncClock();focus('[data-carton]:not(:disabled)');
     }
 
     function stop() {
       clearInterval(ticker);
       ticker = null;
-      s.elapsed = Date.now() - s.startedAt;
+      tick();
       s.phase = 'done';
       render();
+      mount.querySelector('h3').tabIndex=-1;focus('h3');
     }
 
     mount.addEventListener('click', function (event) {
@@ -149,8 +166,8 @@
       if (act) {
         var name = act.getAttribute('data-act');
         if (name === 'start') { start(); return; }
-        if (name === 'reset') { s.phase = 'idle'; render(); return; }
-        if (name === 'flag') { s.flagMode = !s.flagMode; render(); return; }
+        if (name === 'reset') { s.phase = 'idle'; syncClock();render();focus('[data-act=start]');return; }
+        if (name === 'flag') { s.flagMode = !s.flagMode; render();focus('[data-act=flag]');return; }
       }
 
       var box = event.target.closest('[data-carton]');
@@ -158,21 +175,28 @@
         s.picked = box.getAttribute('data-carton');
         s.message = t('challenge.picked', { code: s.picked });
         render();
+        focus('[data-act=flag]');
         return;
       }
 
       var line = event.target.closest('[data-line]');
       if (line && !line.disabled && s.picked) {
+        if(CARTONS.find(function(c){return c.code===s.picked;}).line!==line.dataset.line) {
+          s.message=t('challenge.wrongLine');render();focus('[data-line="'+line.dataset.line+'"]');return;
+        }
         s.assigned[s.picked] = { line: line.getAttribute('data-line'), flagged: s.flagMode };
         s.message = t('challenge.matched', { code: s.picked });
         s.picked = null;
+        s.flagMode=false;
         if (assignedCount() === CARTONS.length) { stop(); return; }
         render();
+        focus('[data-carton]:not(:disabled)');
       }
     });
 
     return {
       render: render,
+      setActive:function(value){tick();active=value;syncClock();},
       reset: function () { clearInterval(ticker); s.phase = 'idle'; render(); }
     };
   }

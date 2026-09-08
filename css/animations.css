@@ -57,9 +57,9 @@
 /* Operator joints and footfalls use the shared warehouse clock in operators.js. */
 .iso-yield-light { fill: var(--machine); stroke: var(--ink); stroke-width: 1; visibility: hidden; }
 .iso-shuttle.is-yielding .iso-yield-light { visibility: visible; }
-.iso-stretch-film polygon { fill: #e4f2ee; fill-opacity: .14; stroke: #e4f2ee; stroke-opacity: .35; stroke-width: .55; }
-.iso-stretch-film path { fill: none; stroke: #e4f2ee; stroke-opacity: .65; stroke-width: .65; }
-.iso-stretch-web { fill: #e4f2ee; fill-opacity: .28; stroke: #e4f2ee; stroke-opacity: .55; stroke-width: .6; }
+.iso-stretch-film polygon { fill: #e4f2ee; fill-opacity: .12; stroke: #e4f2ee; stroke-opacity: .2; stroke-width: .35; }
+.iso-stretch-film path { fill: none; stroke: #e4f2ee; stroke-opacity: .4; stroke-width: .4; }
+.iso-stretch-web { fill: #e4f2ee; fill-opacity: .18; stroke: #e4f2ee; stroke-opacity: .35; stroke-width: .4; }
 /* CSS and SVG path animations both pause offscreen and follow live changes
    to the system's reduced-motion preference. SVG timing is handled in twin.js. */
 #twin-stage.is-paused .twin__svg * { animation-play-state: paused !important; }
@@ -98,15 +98,21 @@
   100% { transform: translateX(102%); }
 }
 @keyframes truck-sweep {
-  0%   { transform: translateX(-40vw); }
+  0%   { transform: translateX(-110%); }
   100% { transform: translateX(110vw); }
 }
 
 .transition.is-running .transition__curtain { animation: curtain-sweep 1700ms var(--ease-out) both; }
 .transition.is-running .transition__truck   { animation: truck-sweep 1700ms linear both; }
-.transition.is-running .fk-shell  { animation: bob 620ms ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-.transition.is-running .fk-wheel  { animation: roll 620ms linear infinite; transform-box: fill-box; transform-origin: center; }
-.transition.is-running .fk-beacon { animation: beacon 520ms steps(1, end) infinite; }
+@keyframes transition-suspension {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(.45px); }
+  70% { transform: translateY(-.25px); }
+}
+.transition.is-running .tf-body { animation: transition-suspension 540ms ease-in-out infinite; }
+.transition.is-running .tf-wheel-rotation { animation: roll 620ms linear infinite; transform-box: fill-box; transform-origin: center; }
+.transition.is-running .tf-wheel--rear .tf-wheel-rotation { animation-duration: 474ms; }
+.transition.is-running .tf-beacon-glow { animation: beacon 950ms ease-in-out infinite; }
 
 /* ---------- Booth stage motion ----------
    The floor strip and the reticle run continuously. They are the attract loop
@@ -342,9 +348,9 @@ body.is-intro .cn-code { animation: label-wake 400ms var(--ease) 620ms both; }
 
   .transition.is-running .transition__curtain,
   .transition.is-running .transition__truck,
-  .transition.is-running .fk-shell,
-  .transition.is-running .fk-wheel,
-  .transition.is-running .fk-beacon,
+  .transition.is-running .tf-body,
+  .transition.is-running .tf-wheel-rotation,
+  .transition.is-running .tf-beacon-glow,
   .iso-shipping,
   .op-walk,
   .iso-wheel-spin,

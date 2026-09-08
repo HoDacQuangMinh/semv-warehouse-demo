@@ -1,0 +1,17 @@
+{
+  "report": [
+    {
+      "file": "index.html",
+      "layouts": 440,
+      "journey": "passed",
+      "challenge": "passed"
+    },
+    {
+      "file": "preview-single-file.html",
+      "layouts": 440,
+      "journey": "passed",
+      "challenge": "passed"
+    }
+  ],
+  "errors": []
+}

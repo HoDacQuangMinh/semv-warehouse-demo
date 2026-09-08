@@ -192,7 +192,8 @@
         if (s.signed.length === GR_SIGNS.length) {
           s.note = { text: t('gr.msg.signed'), bad: false };
           render();
-          setTimeout(onComplete, 550);
+          var completedState=s;
+          setTimeout(function(){if(s===completedState)onComplete();}, 550);
           return;
         }
       }

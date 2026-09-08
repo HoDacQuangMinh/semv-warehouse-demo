@@ -53,9 +53,9 @@ try {
           const phase = percent % 100;
           const context = `${file} ${width}px ${theme} at ${percent}%`;
           assert.ok(near(pose.gate.progress,phase/100),`${context}: gate must read the truck's actual clock`);
-          if (phase <= 14 || phase >= 78) assert.ok(near(pose.gate.y,-54*pose.gate.clearance), `${context}: gate should close unless a forklift needs clearance`);
-          if (phase >= 20 && phase <= 68) assert.ok(near(pose.gate.y,-54), `${context}: gate should be fully open`);
-          if (phase === 17 || phase === 73) assert.ok(near(pose.gate.y,-54*Math.max(.5,pose.gate.clearance)), `${context}: gate must follow the truck clock and preserve forklift clearance`);
+          if (phase <= 14 || phase >= 78) assert.ok(near(pose.gate.y,-83*pose.gate.clearance), `${context}: gate should close unless a forklift needs clearance`);
+          if (phase >= 20 && phase <= 68) assert.ok(near(pose.gate.y,-83), `${context}: gate should be fully open`);
+          if (phase === 17 || phase === 73) assert.ok(near(pose.gate.y,-83*Math.max(.5,pose.gate.clearance)), `${context}: gate must follow the truck clock and preserve forklift clearance`);
           if (phase >= 14 && phase <= 68) assert.ok(near(pose.truck.planX,6) && near(pose.truck.planY,37) && near(pose.truck.heading,-90), `${context}: truck must remain docked with its rear towards the gate`);
           if (phase === 6) assert.ok(pose.truck.heading > -180 && pose.truck.heading < -90 && pose.truck.phase === 'turning',`${context}: truck must turn before reversing`);
           if (phase === 10 || phase === 12) assert.ok(pose.truck.planY > 37 && near(pose.truck.heading,-90) && pose.truck.phase === 'reversing',`${context}: truck must reverse towards its dock`);
@@ -74,7 +74,7 @@ try {
         await page.waitForFunction(() => document.getElementById('twin-stage').classList.contains('is-still'));
         assert.ok(await page.$eval('#dock-gate', gate => {
           const transform = new DOMMatrixReadOnly(getComputedStyle(gate).transform);
-          return gate.getAnimations().length === 0 && transform.f === -54;
+          return gate.getAnimations().length === 0 && transform.f === -83;
         }), 'Reduced motion should leave the gate open beside the parked truck');
         checks++;
 

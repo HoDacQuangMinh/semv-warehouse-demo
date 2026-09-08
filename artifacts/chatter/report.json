@@ -1,0 +1,39 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "speakers": [
+        "Sơn",
+        "Ngân",
+        "Bách",
+        "Trí",
+        "Minh"
+      ],
+      "phrases": [
+        "Xin chào!",
+        "I love RMIT!",
+        "Hello!"
+      ],
+      "adminMoving": true,
+      "phoneChat": true
+    },
+    {
+      "file": "preview-single-file.html",
+      "speakers": [
+        "Sơn",
+        "Ngân",
+        "Bách",
+        "Trí",
+        "Minh"
+      ],
+      "phrases": [
+        "Xin chào!",
+        "I love RMIT!",
+        "Hello!"
+      ],
+      "adminMoving": true,
+      "phoneChat": true
+    }
+  ],
+  "errors": []
+}

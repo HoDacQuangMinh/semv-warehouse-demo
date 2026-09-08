@@ -1,0 +1,51 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "angles": [
+        0,
+        15,
+        108,
+        240,
+        360,
+        480,
+        720,
+        960,
+        1065,
+        1080,
+        1080,
+        1080,
+        1080,
+        0,
+        60
+      ],
+      "tangentClearance": true,
+      "filmHeight": true,
+      "stationTargets": true
+    },
+    {
+      "file": "preview-single-file.html",
+      "angles": [
+        0,
+        15,
+        108,
+        240,
+        360,
+        480,
+        720,
+        960,
+        1065,
+        1080,
+        1080,
+        1080,
+        1080,
+        0,
+        60
+      ],
+      "tangentClearance": true,
+      "filmHeight": true,
+      "stationTargets": true
+    }
+  ],
+  "errors": []
+}

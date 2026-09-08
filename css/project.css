@@ -1,0 +1,70 @@
+/* The project document has its own readable, responsive surface. */
+#view-more.is-active { display: block; background: var(--floor); scroll-padding-top: 82px; }
+body[data-view="more"]::after { display: none; }
+#view-more .wrap { width: min(1120px,calc(100% - 48px)); margin-inline: auto; }
+#view-more .band { padding-block: clamp(40px,6vw,76px); border-bottom: 1px solid var(--line); }
+#view-more h2 { max-width: 24ch; font-size: clamp(25px,3.2vw,38px); letter-spacing: -.035em; line-height: 1.15; }
+#view-more .section-lede { max-width: 66ch; margin-top: 14px; line-height: 1.7; color: var(--ink-2); }
+[data-view-heading]:focus { outline: none; }
+.project-nav { position: sticky; top: 0; z-index: 5; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+.project-nav .wrap { display: flex; align-items: center; gap: 6px; padding-block: 8px; overflow-x: auto; }
+.project-nav button { border: 0; border-radius: 5px; background: transparent; color: var(--ink-2); font-size: 13px; white-space: nowrap; min-height: 44px; padding: 10px 14px; cursor: pointer; }
+.project-nav button:hover,.project-nav button:focus-visible { color: var(--verified-deep); background: var(--verified-wash); }
+.project-hero .wrap { display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: clamp(32px,6vw,88px); }
+.project-kicker { font: 600 12px var(--font-mono); letter-spacing: .09em; color: var(--verified-deep); margin-bottom: 20px; }
+#view-more .project-hero h2 { font-size: clamp(36px,4.5vw,60px); max-width: 14ch; }
+.project-hero .btn { margin-top: 20px; }
+.project-route { position: relative; display: grid; gap: 18px; padding: 32px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-2); box-shadow: 0 16px 48px #00000008; }
+.project-route__line { position: absolute; top: 52px; bottom: 52px; left: 48px; width: 2px; background: var(--se-green); }
+.project-route > div { position: relative; display: grid; grid-template-columns: 48px 1fr; column-gap: 16px; align-items: center; }
+.project-route b { display: grid; place-items: center; width: 48px; height: 48px; grid-row: span 2; border: 1px solid var(--line); border-radius: 9px; background: var(--floor); font: 600 16px var(--font-mono); color: var(--verified-deep); }
+.project-route span:not(.project-route__line) { font-weight: 600; }
+.project-route small { font: 11px var(--font-mono); color: var(--ink-3); margin-top: 3px; }
+#view-more .scanbox { margin-top: 28px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: none; background: var(--panel-2); }
+#view-more .scanbox__stage { background: var(--panel); min-height: 280px; }
+#view-more .scanbox__panel { min-width: 0; padding: 28px; }
+#view-more .scanbox__out { font-size: 14px; }
+#view-more .pains,#view-more .ba,#view-more .flow__steps { gap: 18px; margin-top: 28px; }
+#view-more .pain,#view-more .ba__cell,#view-more .flow__step { padding: 26px; min-width: 0; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; }
+#view-more .pain h3,#view-more .flow__step h3 { font-size: 20px; }
+#view-more .pain p,#view-more .ba p,#view-more .flow__step p { font-size: 14px; line-height: 1.65; color: var(--ink-2); }
+#view-more .ba__key { display: block; color: var(--ink); font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+#view-more .flow__step { display: flex; flex-direction: column; align-items: start; }
+#view-more .flow__step::after { display: none; }
+#view-more .flow__step p { flex: 1; }
+#view-more .flow__step .btn { width: 100%; margin-top: 20px; min-height: 44px; }
+#view-more .flow__step.is-done { border-color: var(--verified-deep); }
+#view-more .flow__step-num { margin-bottom: 16px; font-size: 28px; }
+.project-specs { margin-top: 28px; border-top: 1px solid var(--line); }
+.project-specs details { border-bottom: 1px solid var(--line); padding: 0 4px; }
+.project-specs summary { cursor: pointer; padding: 20px 0; font-size: 17px; font-weight: 600; }
+.project-specs p { color: var(--ink-2); max-width: 75ch; line-height: 1.7; padding-bottom: 24px; }
+#view-more .team { gap: 14px; margin-block: 28px; }
+#view-more .team__card { border: 1px solid var(--line); padding: 22px 16px; border-radius: 10px; background: var(--panel-2); }
+.team__avatar { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--verified-wash); color: var(--verified-deep); font-weight: 600; margin-bottom: 20px; }
+#view-more .team__role { font: 11px var(--font-mono); color: var(--ink-2); margin-top: 8px; }
+#view-more .ch { border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); padding: clamp(16px,3vw,28px); }
+#view-more .ch__bar { flex-wrap: wrap; gap: 10px; }
+#view-more .ch-box,#view-more .ch-line { min-height: 58px; border-radius: 6px; }
+#view-more .ch-box__item,#view-more .ch-line { font-size: 12px; }
+.ch__review { display: grid; gap: 10px; margin: 20px 0; list-style: none; padding: 0; }
+.ch__review li { padding: 14px; border-left: 3px solid var(--hazard); background: var(--floor); font-size: 14px; }
+.ch__review li.is-good { border-color: var(--verified-deep); }
+.ch__review strong { display: block; margin-bottom: 6px; }
+.ch__hint { min-height: 3em; }
+@media(max-width:760px) {
+ #view-more .wrap { width: calc(100% - 32px); }
+ .project-hero .wrap { grid-template-columns: 1fr; gap: 28px; }
+ #view-more .project-hero h2 { max-width: 18ch; }
+ .project-route { padding: 22px; gap: 14px; }
+ .project-route__line { left: 46px; }
+ #view-more .pains,#view-more .ba,#view-more .flow__steps { grid-template-columns: 1fr; }
+ #view-more .team { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ #view-more .scanbox { grid-template-columns: 1fr; }
+ #view-more .scanbox__stage { min-height: 210px; }
+ #view-more .ch__grid { grid-template-columns: 1fr; }
+ .project-nav .wrap { width: 100% !important; padding-inline: 12px; flex-wrap: wrap; gap: 0; }
+ .project-nav button { font-size: 12px; padding: 8px 10px; }
+ #view-more { scroll-padding-top: 118px; }
+}
+@media(max-width:360px) { #view-more .ch__boxes { grid-template-columns: 1fr; } #view-more .ch-line { padding: 10px 6px; gap: 5px; } }

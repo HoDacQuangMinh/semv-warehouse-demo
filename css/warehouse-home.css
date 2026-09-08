@@ -1,0 +1,31 @@
+/* An exhibition-style model with quiet controls and a clear entry point. */
+#view-home .twin { --hall-bg: #e4eceb; background: radial-gradient(ellipse at 69% 25%,#f7fbf9 0%,#e4eceb 55%,#d6e2e0 100%); }
+[data-theme="dark"] #view-home .twin { --hall-bg: #152529; background: radial-gradient(ellipse at 67% 27%,#2b4248 0%,#1b3035 52%,#122126 100%); }
+#view-home .twin::before { background: radial-gradient(ellipse at 65% 28%,#ffffff25,transparent 60%); }
+#view-home .twin__title { display: inline-flex; align-items: center; gap: 9px; font-size: 12px; letter-spacing: .035em; padding: 9px 12px; border: 1px solid color-mix(in srgb,var(--ink) 12%,transparent); border-radius: 6px; background: color-mix(in srgb,var(--hall-bg) 90%,transparent); }
+.warehouse-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--verified-deep); box-shadow: 0 0 0 4px color-mix(in srgb,var(--se-green) 14%,transparent); }
+#view-home .twin__hint { border: 0; padding: 10px 0; font-size: 11px; color: var(--ink-2); }
+.warehouse-kicker { font: 600 clamp(9px,1cqw,12px) var(--font-mono); letter-spacing: .15em; color: var(--verified-deep); margin-bottom: clamp(8px,1.5cqh,16px); }
+#view-home .stage-overlay { width: min(calc(100% - 2 * var(--scene-pad)),clamp(275px,32cqw,465px)); }
+#view-home .stage-overlay h1 { white-space: pre-line; max-width: 17ch; line-height: 1.05; font-size: clamp(24px,min(3.6cqw,5.2cqh),65px); letter-spacing: -.045em; }
+#view-home .stage-overlay__by { font-size: clamp(10px,1cqw,13px); margin-block: 12px 20px; color: var(--ink-2); }
+#view-home .stage-overlay__by::after { height: 3px; width: 48px; margin-top: 16px; background: var(--se-green); }
+#view-home .stage-overlay .btn { border: 1px solid #42bc66; border-radius: 7px; box-shadow: 0 4px 16px #174c3020; font-weight: 600; transition: background .18s,box-shadow .18s; }
+#view-home .stage-overlay .btn:hover { box-shadow: 0 7px 24px #174c3030; }
+#view-home .stage-overlay .dots { display: none; }
+.warehouse-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; margin-top: 20px; max-width: 370px; pointer-events: auto; }
+.warehouse-steps button { display: flex; align-items: center; gap: 7px; min-width: 0; min-height: 44px; padding: 8px 7px; border: 0; border-top: 2px solid color-mix(in srgb,var(--ink) 17%,transparent); color: var(--ink-2); background: color-mix(in srgb,var(--hall-bg) 85%,transparent); font-size: clamp(9px,.86cqw,12px); cursor: pointer; text-align: left; }
+.warehouse-steps button > span:first-child { font: 10px var(--font-mono); color: var(--ink-3); }
+.warehouse-steps button:hover { background: var(--panel-2); color: var(--ink); border-color: var(--verified-deep); }
+.warehouse-steps button.is-done { border-color: var(--verified-deep); color: var(--verified-deep); }
+.warehouse-steps button.is-done > span:first-child { color: var(--verified-deep); }
+#view-home .stage-overlay .progress__label { font-size: clamp(10px,1cqw,12px); color: var(--ink-2); margin-top: 10px; }
+#view-home .twin-map-controls { border-radius: 9px; padding: 5px; box-shadow: 0 5px 24px #102f3512; }
+#view-home .twin__person span { border-radius: 5px; background: color-mix(in srgb,var(--panel-2) 94%,transparent); box-shadow: 0 2px 7px #16373818; }
+#view-home .iso-node-pad { fill-opacity: .1; stroke-width: 1.5; }
+#view-home .iso-node-dot { stroke: var(--panel-2); stroke-width: 1.5; }
+#view-home .iso-floor-light { opacity: .8; }
+@container (max-width: 640px) { #view-home .twin__title { font-size: 10px; padding: 7px 9px; } #view-home .twin__head { justify-content: space-between; } .warehouse-steps { margin-top: 10px; } #view-home .stage-overlay__by { margin-block: 8px 12px; } }
+@container (max-height: 420px) { .warehouse-kicker { margin-bottom: 6px; } #view-home .stage-overlay__by::after { display: none; } #view-home .stage-overlay__by { margin-block: 6px 10px; } .warehouse-steps { margin-top: 8px; } }
+@container (max-height: 340px) and (min-aspect-ratio: 7/5) { #view-home .stage-overlay { width: calc(44% - var(--scene-pad)); } #view-home .stage-overlay h1 { font-size: clamp(16px,6cqh,20px); } .warehouse-steps button { min-height: 28px; padding: 4px; gap: 4px; } }
+@media(prefers-reduced-motion:reduce) { #view-home .stage-overlay .btn { transition: none; } }

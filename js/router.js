@@ -40,6 +40,7 @@
     var opts = options || {};
     if (busy || id === current) { return; }
     if (!document.getElementById('view-' + id)) { return; }
+    if(global.WarehouseHandoff && global.WarehouseHandoff.isActive()) global.WarehouseHandoff.cancel();
 
     if (opts.instant || global.Forklift.prefersReducedMotion()) {
       apply(id);
@@ -50,7 +51,7 @@
     var layer = document.getElementById('transition');
     layer.innerHTML =
       '<div class="transition__curtain"></div>'
-      + '<div class="transition__truck">' + global.Forklift.markup() + '</div>';
+      + '<div class="transition__truck">' + global.TransitionForklift.markup() + '</div>';
     layer.hidden = false;
     void layer.offsetWidth;
     layer.classList.add('is-running');

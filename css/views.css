@@ -189,7 +189,7 @@ body:has(#view-home.is-active)::after { background: none; }
   bottom: 12%;
   left: 0;
   width: min(46vw, 520px);
-  transform: translateX(-40vw);
+  transform: translateX(-110%);
 }
 .transition__truck svg { width: 100%; height: auto; }
 

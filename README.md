@@ -43,6 +43,11 @@ Only Sơn, Ngân, Minh, Trí, and Bách respond to a click or Enter/Space with a
 wave and a greeting cycling through “Hello!”, “Xin chào!”, and “I love RMIT!”.
 Reduced motion keeps the greeting and skips the wave. `npm run check:interactions`
 checks crew targeting, drag-versus-click, zoom, touch, and keyboard controls.
+The five teammates also occasionally speak one of those greetings on their own.
+Random pauses and speaker order keep a single bubble visible at a time; clicking
+an operator takes priority. Ngân keeps walking while her conversation bubble
+follows her. Ambient chat pauses in station apps and with reduced motion.
+`npm run check:chatter` checks spontaneous speech, click priority, and phone placement.
 Sơn stands beside Returnables, Minh beside the GR stacks, Trí beside Pallet
 Interlocking, and Bách beside PutAway. Ngân patrols GR, Pallet Interlocking,
 Returnables, and the storage aisles, pausing for hover, focus, or a greeting. Tappable
@@ -78,6 +83,9 @@ The shipping truck departs early when a loaded forklift approaches and waits
 outside until the forklift has dropped its load and cleared the container entrance.
 
 The yellow turntable rotates a boxed pallet while transparent film builds upward.
+Carton seams and tape sit above a wooden pallet; film follows the outside corner
+of the load from a matching-height roll. `npm run check:wrapping` checks film
+clearance, height, rotation, and station targeting on desktop and phone.
 A nearby operator gestures through wrapping; the completed wrap pauses briefly
 before repeating. These activities pause offscreen and respect reduced motion.
 `npm run check:logistics` simulates ten minutes of deliveries and encounters.
@@ -130,6 +138,7 @@ the transition.
 
     js/i18n.js              every string, Vietnamese and English
     js/twin.js              the isometric hall: geometry, actors, hover cards
+    js/transition-forklift.js  detailed forklift illustration for view transitions only
     js/operators.js         articulated people, planted footsteps, work and greeting gestures
     js/camera.js            pointer, touch, and keyboard map controls
     js/vehicles.js          projected vehicles, forks, and cargo meshes

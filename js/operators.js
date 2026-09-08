@@ -57,6 +57,7 @@
       var elapsed=still ? 0 : dt/1000;
       clock+=elapsed;
       var greeting=node.classList.contains('is-greeting'),serial=node.dataset.greetingSerial || '';
+      var speaking=node.classList.contains('is-speaking');
       if(serial!==lastGreeting) {greetingTime=0;lastGreeting=serial;}
       if(greeting) greetingTime+=elapsed;
       var walking=!still && person.walking;
@@ -71,9 +72,9 @@
       var wave=greeting && !still ? envelope(greetingTime,.15,2.5) : 0;
       var travel=person.travel || 0;
       var phase=travel/STRIDE*TAU,breath=still ? 0 : Math.sin(clock*1.3)*.018;
-      var bob=-weight*(.065+Math.cos(phase*2)*.045),lean=weight*.07;
+      var bob=-weight*(.065+Math.cos(phase*2)*.045)-(person.crouch || 0),lean=weight*.07;
       var glance=busy ? Math.sin(clock*.7)*.12 : 0;
-      headAngle=still ? 0 : mix(headAngle,greeting ? .12 : glance,blend);
+      headAngle=still ? 0 : mix(headAngle,greeting ? .12 : speaking ? Math.sin(clock*2)*.09 : glance,blend);
       var targetHeading=greeting && !still ? 45 : person.heading;
       var headingGap=((targetHeading-facing+540)%360)-180;
       facing=still ? person.heading : facing+Math.sign(headingGap)*Math.min(Math.abs(headingGap),elapsed*210);
@@ -137,12 +138,17 @@
         var swing=Math.sin(phase+i*Math.PI)*.34*weight;
         var target=swing;
         if(!walking) target=task*(opts.task==='scan' ? 1.0 : .62)*(i ? 1 : .35);
+        if(speaking && !still) target+=(.32+Math.sin(clock*3)*.12)*(i ? 1 : .3);
         if(i===1 && wave) target=wave*(2.4+Math.sin(greetingTime*TAU*2.1)*.21);
         armAngles[i]=still ? 0 : mix(armAngles[i],target,blend);
         var angle=armAngles[i],shoulder=[side*.88,lean,3.35+bob+breath];
         var elbow=[shoulder[0]+side*wave*(i ? .16 : 0),shoulder[1]+Math.sin(angle)*.56,shoulder[2]-Math.cos(angle)*.56];
         var foreAngle=angle+.16+task*.46;
         var hand=[elbow[0]+(i ? wave*.24 : 0),elbow[1]+Math.sin(foreAngle)*.51,elbow[2]-Math.cos(foreAngle)*.51];
+        if(person.carrying) {
+          elbow=[side*.72,.48,3.02+bob];
+          hand=[side*.66,1.04,(person.carryHeight || 2.3)+.4];
+        }
         bone(arm.upper,shoulder,elbow,.29,.34);bone(arm.lower,elbow,hand,.25,.28);
         cuboid(arm.hand,hand,[.27,.3,.27]);hands.push(hand);
       });

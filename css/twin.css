@@ -123,6 +123,20 @@
 .iso-wrapper-base { fill: var(--machine-deep); stroke: #7f733b; stroke-width: 2; }
 .iso-wrapper-top { fill: var(--machine); stroke: #7f733b; stroke-width: 1.2; }
 .iso-wrapper-hub { fill: none; stroke: #7f733b; stroke-width: 1.2; }
+.iso-wrap-contact { fill: #372b15; opacity: .12; pointer-events: none; }
+.iso-wrap-turntable-marks { fill: none; stroke: #78612f; stroke-width: 1.3; pointer-events: none; }
+.iso-wrap-pallet-top { fill: #b88e57; }
+.iso-wrap-pallet-right { fill: #745331; }
+.iso-wrap-pallet-left { fill: #96703f; }
+.iso-wrap-carton-top { fill: var(--carton); }
+.iso-wrap-carton-right { fill: color-mix(in srgb, var(--carton) 76%, #57402b); }
+.iso-wrap-carton-left { fill: var(--carton-deep); }
+[class^="iso-wrap-carton-"] { stroke: #876b48; stroke-opacity: .4; stroke-width: .25; stroke-linejoin: round; }
+.iso-wrap-tape-top { fill: #e1c89f; }
+.iso-wrap-tape-right, .iso-wrap-tape-left { fill: #b39a75; }
+.iso-wrap-roll-side { fill: #d6e0d9; }
+.iso-wrap-roll-top { fill: #f1f6ef; }
+.iso-wrap-roll-core { fill: #8c806a; }
 .iso-area-labels { pointer-events: none; }
 .iso-area-label {
   font-family: var(--font-mono);
@@ -285,6 +299,12 @@
   background: var(--panel-2);
 }
 .twin__greeting.is-below::after { top: -6px; bottom: auto; }
+.twin__chatter { z-index: 6; }
+.twin__chatter:not([hidden]) { animation: chatter-appear 220ms ease-out both; }
+@keyframes chatter-appear {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .iso-crewA-top   { fill: color-mix(in srgb, var(--crew-a) 80%, #FFFFFF); }
 .iso-crewA-left  { fill: var(--crew-a); }

@@ -1,0 +1,71 @@
+{
+  "reports": [
+    {
+      "file": "index.html",
+      "width": 1440,
+      "height": 900,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    },
+    {
+      "file": "index.html",
+      "width": 390,
+      "height": 844,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    },
+    {
+      "file": "index.html",
+      "width": 568,
+      "height": 320,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    },
+    {
+      "file": "preview-single-file.html",
+      "width": 1440,
+      "height": 900,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    },
+    {
+      "file": "preview-single-file.html",
+      "width": 390,
+      "height": 844,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    },
+    {
+      "file": "preview-single-file.html",
+      "width": 568,
+      "height": 320,
+      "detailed": true,
+      "legacyUnchanged": true,
+      "sceneForklifts": 2,
+      "fits": true,
+      "missingPaint": [],
+      "scroll": false
+    }
+  ],
+  "errors": []
+}
