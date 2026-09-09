@@ -48,6 +48,56 @@
 
 .topbar__tools { display: flex; flex: none; gap: var(--sp-2); }
 
+/* Both original PNGs already have alpha transparency. Keep the header behind
+   them visible; the SVG overlay changes only RMIT's navy lettering at night. */
+.topbar--partners .topbar__inner {
+  width: min(100% - 2.5rem, 1600px);
+  display: grid;
+  grid-template-columns: 148px 340px minmax(0, 1fr) auto;
+  gap: 20px;
+  padding-block: 8px;
+}
+.brand--partner {
+  margin: 0;
+  padding: 7px;
+  min-height: 52px;
+  background: transparent;
+}
+.brand__logo--se { position: relative; width: 100%; aspect-ratio: 1280 / 420; overflow: hidden; }
+.brand__logo--se img { display: block; width: 100%; height: auto; transform: translateY(-25.26%); }
+.topbar__school { display: block; min-width: 0; aspect-ratio: 10929 / 1900; background: transparent; overflow: hidden; }
+.brand__rmit { display: block; width: 100%; height: auto; transform: translateY(-13%); }
+.brand__rmit-dark { display: none; }
+[data-theme="dark"] .brand__rmit-dark { display: inline; }
+[data-theme="dark"] .brand__logo--se img { filter: brightness(1.35); }
+.topbar--partners .topbar__nav { justify-content: flex-end; gap: 20px; }
+.topbar--partners .topbar__nav a { text-wrap: balance; }
+
+@media (max-width: 1250px) {
+  .topbar--partners .topbar__inner { grid-template-columns: 132px minmax(260px, 340px) 1fr; gap: 0 16px; }
+  .topbar--partners .topbar__nav { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+  .topbar--partners .topbar__tools { grid-column: 3; grid-row: 1; justify-self: end; }
+}
+@media (max-width: 760px) {
+  .topbar--partners .topbar__inner { grid-template-columns: 112px minmax(240px, 1fr) auto; width: calc(100% - 24px); gap: 0 12px; }
+  .topbar--partners .icon-btn { min-width: var(--hit); padding: .42rem; justify-content: center; }
+  .topbar--partners .icon-btn span { display: none; }
+}
+@media (max-width: 540px) {
+  .topbar--partners .topbar__inner { grid-template-columns: 112px 1fr; gap: 5px 12px; padding-block: 6px 0; }
+  .topbar--partners .topbar__tools { grid-column: 2; grid-row: 1; }
+  .topbar--partners .topbar__school { grid-column: 1 / -1; grid-row: 2; width: min(100%, 340px); justify-self: center; }
+  .topbar--partners .topbar__nav { grid-row: 3; gap: 16px; }
+  .topbar--partners .topbar__nav a { font-size: 12px; }
+  .brand--partner { min-height: 44px; padding: 5px; }
+}
+@media (max-height: 480px) and (min-width: 460px) and (max-width: 760px) {
+  .topbar--partners .topbar__inner { grid-template-columns: 90px minmax(0, 1fr) auto; gap: 0 8px; }
+  .topbar--partners .topbar__school { grid-column: 2; grid-row: 1; width: 100%; }
+  .topbar--partners .topbar__tools { grid-column: 3; grid-row: 1; }
+  .topbar--partners .topbar__nav { grid-column: 1 / -1; grid-row: 2; }
+}
+
 /* ---------- Section bands ---------- */
 
 .band { padding-block: var(--sp-7); border-top: 1px solid var(--line); }

@@ -1,0 +1,29 @@
+{
+  "report": [
+    {
+      "base": "file:///D:/semv-warehouse-demo/",
+      "file": "index.html",
+      "history": "passed",
+      "headerLayouts": 56
+    },
+    {
+      "base": "file:///D:/semv-warehouse-demo/",
+      "file": "preview-single-file.html",
+      "history": "passed",
+      "headerLayouts": 56
+    },
+    {
+      "base": "http://127.0.0.1:56652/",
+      "file": "index.html",
+      "history": "passed",
+      "headerLayouts": 56
+    },
+    {
+      "base": "http://127.0.0.1:56652/",
+      "file": "preview-single-file.html",
+      "history": "passed",
+      "headerLayouts": 56
+    }
+  ],
+  "errors": []
+}

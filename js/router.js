@@ -13,6 +13,50 @@
   var current = 'home';
   var busy = false;
   var listeners = [];
+  var swapTimer = null;
+  var finishTimer = null;
+
+  function valid(id) {
+    var view = document.getElementById('view-' + id);
+    return !!view && view.classList.contains('view');
+  }
+
+  // Fragments work both on a web server and in the offline single-file demo.
+  function locationView() {
+    var id = location.hash.slice(1).replace(/^view-/, '');
+    return valid(id) ? id : 'home';
+  }
+
+  function record(id, replace) {
+    var state = Object.assign({}, history.state, { warehouseView: id });
+    history[replace ? 'replaceState' : 'pushState'](state, '', '#' + id);
+  }
+
+  function cancelTransition() {
+    clearTimeout(swapTimer);
+    clearTimeout(finishTimer);
+    swapTimer = finishTimer = null;
+    var layer = document.getElementById('transition');
+    layer.classList.remove('is-running');
+    layer.hidden = true;
+    layer.innerHTML = '';
+    busy = false;
+  }
+
+  function cancelHandoff() {
+    if (global.WarehouseHandoff && global.WarehouseHandoff.isActive()) {
+      global.WarehouseHandoff.cancel();
+    }
+  }
+
+  function restore(force) {
+    var id = locationView();
+    var interrupted = busy || (global.WarehouseHandoff && global.WarehouseHandoff.isActive());
+    cancelTransition();
+    cancelHandoff();
+    if (location.hash !== '#' + id) { record(id, true); }
+    if (force || interrupted || id !== current) { apply(id); }
+  }
 
   function views() {
     return Array.prototype.slice.call(document.querySelectorAll('.view'));
@@ -31,16 +75,18 @@
     });
     current = id;
     if (document.activeElement && document.activeElement.blur) { document.activeElement.blur(); }
-    var heading = document.querySelector('#view-' + id + ' [data-view-heading]');
-    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
+    var heading = document.querySelector('#view-' + id + ' [data-view-heading], #view-' + id + ' h1');
+    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
     listeners.forEach(function (fn) { fn(id); });
   }
 
   function go(id, options) {
     var opts = options || {};
-    if (busy || id === current) { return; }
-    if (!document.getElementById('view-' + id)) { return; }
-    if(global.WarehouseHandoff && global.WarehouseHandoff.isActive()) global.WarehouseHandoff.cancel();
+    if (!valid(id) || (busy && !opts.instant)) { return; }
+    if (busy) { cancelTransition(); }
+    cancelHandoff();
+    if (id === current && locationView() === id) { return; }
+    record(id, !!opts.replace);
 
     if (opts.instant || global.Forklift.prefersReducedMotion()) {
       apply(id);
@@ -56,19 +102,15 @@
     void layer.offsetWidth;
     layer.classList.add('is-running');
 
-    setTimeout(function () { apply(id); }, SWAP_AT);
-    setTimeout(function () {
-      layer.classList.remove('is-running');
-      layer.hidden = true;
-      layer.innerHTML = '';
-      busy = false;
-    }, TRANSITION_MS);
+    swapTimer = setTimeout(function () { apply(id); }, SWAP_AT);
+    finishTimer = setTimeout(cancelTransition, TRANSITION_MS);
   }
 
   function init() {
     document.addEventListener('click', function (event) {
       var link = event.target.closest('[data-goto]');
       if (!link) { return; }
+      if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) { return; }
       event.preventDefault();
       go(link.getAttribute('data-goto'));
     });
@@ -81,7 +123,16 @@
       }
     });
 
-    apply('home');
+    global.addEventListener('popstate', function () { restore(false); });
+    global.addEventListener('hashchange', function () { restore(false); });
+    // Returning from another document can restore a suspended animation from
+    // the browser cache. Clear transient layers and resume the active view.
+    global.addEventListener('pagehide', function () { cancelTransition(); cancelHandoff(); });
+    global.addEventListener('pageshow', function (event) { if (event.persisted) { restore(true); } });
+
+    var initial = locationView();
+    record(initial, true);
+    apply(initial);
   }
 
   global.Router = {

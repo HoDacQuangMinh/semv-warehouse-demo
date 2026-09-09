@@ -23,22 +23,33 @@
 
 <a class="skip-link" href="#view-home" data-i18n="skip">Bỏ qua, tới phần nội dung</a>
 
-<header class="topbar">
+<header class="topbar topbar--partners">
   <div class="wrap topbar__inner">
-    <a class="brand" href="index.html">
-      <svg class="brand__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M3 8.5 12 13l9-4.5M12 13v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-      </svg>
-      <span class="brand__text">
-        <span class="brand__name" data-i18n="brand.name"></span>
-        <span class="brand__sub" data-i18n="brand.sub"></span>
+    <a class="brand brand--partner" href="#home" data-goto="home" data-i18n-aria="brand.name">
+      <span class="brand__logo brand__logo--se">
+        <img src="assets/schneider-electric-logo.png" alt="Schneider Electric" width="1280" height="970">
       </span>
     </a>
 
+    <a class="topbar__school" href="#home" data-goto="home">
+      <svg class="brand__rmit" viewBox="0 0 10929 2667" role="img" aria-labelledby="rmit-logo-title">
+        <title id="rmit-logo-title">RMIT University — School of Science, Engineering &amp; Technology</title>
+        <defs>
+          <clipPath id="rmit-wordmark-clip"><rect x="1750" y="0" width="3800" height="2667"/></clipPath>
+          <filter id="rmit-white-ink" color-interpolation-filters="sRGB">
+            <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/>
+          </filter>
+        </defs>
+        <image id="rmit-logo-art" href="assets/rmit-sset-logo.png" width="10929" height="2667"/>
+        <g class="brand__rmit-dark" clip-path="url(#rmit-wordmark-clip)">
+          <use href="#rmit-logo-art" filter="url(#rmit-white-ink)"/>
+        </g>
+      </svg>
+    </a>
+
     <nav class="topbar__nav" aria-label="Sections">
-      <a href="#" data-goto="home" data-i18n="nav.home"></a>
-      <a href="#" data-goto="more" data-i18n="nav.more"></a>
+      <a href="#home" data-goto="home" data-i18n="nav.home"></a>
+      <a href="#more" data-goto="more" data-i18n="nav.more"></a>
     </nav>
 
     <div class="topbar__tools">

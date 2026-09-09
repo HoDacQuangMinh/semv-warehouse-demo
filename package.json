@@ -1,6 +1,8 @@
 {
   "scripts": {
     "build:preview": "node scripts/build-preview.mjs",
+    "build:docs": "node scripts/build-tech-docs.mjs",
+    "build:docs:pdf": "node scripts/build-tech-pdf.mjs",
     "check:responsive": "node scripts/check-responsive.mjs",
     "check:dock": "node scripts/check-dock-cycle.mjs",
     "check:interactions": "node scripts/check-interactions.mjs",
@@ -9,6 +11,7 @@
     "check:chatter": "node scripts/check-chatter.mjs",
     "check:wrapping": "node scripts/check-wrapping.mjs",
     "check:grounding": "node scripts/check-grounding.mjs",
+    "check:navigation": "node scripts/check-navigation.mjs",
     "check:logistics": "node scripts/check-logistics.mjs",
     "check:logistics-browser": "node scripts/check-logistics-browser.mjs",
     "check:lane-priority": "node scripts/check-lane-priority.mjs",

@@ -2,6 +2,19 @@
 
 A static site. No build step, no bundler, no backend, no login, no tracking.
 
+## Technical documentation
+
+The implementation guide covers the technology stack, file structure, geometry,
+animations, routing, state, accessibility, demo flows, maintenance and checks:
+
+- [Word document](docs/SEMV-Warehouse-Technical-Guide.docx)
+- [PDF document](docs/SEMV-Warehouse-Technical-Guide.pdf)
+- [Editable Markdown](docs/technical-guide.md)
+
+Run `npm run build:docs` after editing the guide, then `npm run build:docs:pdf`
+to export its PDF with the installed browser. Browser Back/Forward and header
+behaviour are covered by `npm run check:navigation`.
+
 ## Running it
 
 Open `index.html` in a browser. That is all it needs.
@@ -116,7 +129,7 @@ the transition.
   step it is, tap it to open that app.
 - **Three station views**, one per app, each with a working terminal.
 - **Project detail** holds the problem, the manual challenge, the flow board,
-  results, how it is built, the video slot and the team.
+  outcomes, how it is built and the team.
 
 ## Files
 
@@ -136,7 +149,7 @@ the transition.
     css/sections.css        project detail sections and the legal pages
     css/animations.css      every keyframe, plus the reduced motion block
 
-    js/i18n.js              every string, Vietnamese and English
+    js/i18n.js              interface translations, Vietnamese and English
     js/twin.js              the isometric hall: geometry, actors, hover cards
     js/transition-forklift.js  detailed forklift illustration for view transitions only
     js/operators.js         articulated people, planted footsteps, work and greeting gestures
@@ -147,7 +160,7 @@ the transition.
     js/warehouse-environment.js  building shell, floor guides, stock, and shadows
     js/router.js            view switching and the forklift transition
     js/state.js             station completion, in memory only
-    js/forklift.js          the transition vehicle
+    js/forklift.js          older forklift helper and reduced-motion utility
     js/demos.js             the three app simulations
     js/challenge.js         the manual matching challenge
     js/main.js              wiring
@@ -213,4 +226,6 @@ Content still to fill, marked on the page with a dashed yellow box:
 ## Adding a language
 
 Add a block to `STRINGS` in `js/i18n.js` with the same keys and call
-`I18N.setLanguage('code')`. No string is hard coded anywhere else.
+`I18N.setLanguage('code')`. Operator speech is configured separately in
+`PHRASES` in `js/twin.js`; sample warehouse IDs and logo artwork retain their
+original text.
